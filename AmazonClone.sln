@@ -1,0 +1,58 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113 d17.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AmzonClone.Web", "AmzonClone.Web\AmzonClone.Web.csproj", "{9A0C278B-BC43-416C-9498-A2C67F857D04}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AmazonClone.Domain", "AmazonClone.Domain\AmazonClone.Domain.csproj", "{8CE1939C-EE78-40CF-9532-AA3144483D31}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AmazonClone.Application", "AmazonClone.Application\AmazonClone.Application.csproj", "{B09C9268-03DA-4BFC-AAB8-DBB49CDFD0C9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AmazonClone.Infrastructure", "AmazonClone.Infrastructure\AmazonClone.Infrastructure.csproj", "{3C4E85D0-28AF-4AC4-9B63-84A0CC15CD62}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AmazonClone.Persistence", "AmazonClone.Persistence\AmazonClone.Persistence.csproj", "{93E8F216-AB17-4DB5-B246-F92F18A1FEB9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AmazonClone.Shared", "AmazonClone.Shared\AmazonClone.Shared.csproj", "{8805D6A9-D08B-4429-BFF1-7F08DA5A6265}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AmazonClone.API", "AmazonClone.API\AmazonClone.API.csproj", "{C02FC644-9077-4BEB-AB3F-E079FCE5EBB6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9A0C278B-BC43-416C-9498-A2C67F857D04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A0C278B-BC43-416C-9498-A2C67F857D04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A0C278B-BC43-416C-9498-A2C67F857D04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A0C278B-BC43-416C-9498-A2C67F857D04}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8CE1939C-EE78-40CF-9532-AA3144483D31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CE1939C-EE78-40CF-9532-AA3144483D31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CE1939C-EE78-40CF-9532-AA3144483D31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CE1939C-EE78-40CF-9532-AA3144483D31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B09C9268-03DA-4BFC-AAB8-DBB49CDFD0C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B09C9268-03DA-4BFC-AAB8-DBB49CDFD0C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B09C9268-03DA-4BFC-AAB8-DBB49CDFD0C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B09C9268-03DA-4BFC-AAB8-DBB49CDFD0C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C4E85D0-28AF-4AC4-9B63-84A0CC15CD62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C4E85D0-28AF-4AC4-9B63-84A0CC15CD62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C4E85D0-28AF-4AC4-9B63-84A0CC15CD62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C4E85D0-28AF-4AC4-9B63-84A0CC15CD62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93E8F216-AB17-4DB5-B246-F92F18A1FEB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93E8F216-AB17-4DB5-B246-F92F18A1FEB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93E8F216-AB17-4DB5-B246-F92F18A1FEB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93E8F216-AB17-4DB5-B246-F92F18A1FEB9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8805D6A9-D08B-4429-BFF1-7F08DA5A6265}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8805D6A9-D08B-4429-BFF1-7F08DA5A6265}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8805D6A9-D08B-4429-BFF1-7F08DA5A6265}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8805D6A9-D08B-4429-BFF1-7F08DA5A6265}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C02FC644-9077-4BEB-AB3F-E079FCE5EBB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C02FC644-9077-4BEB-AB3F-E079FCE5EBB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C02FC644-9077-4BEB-AB3F-E079FCE5EBB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C02FC644-9077-4BEB-AB3F-E079FCE5EBB6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

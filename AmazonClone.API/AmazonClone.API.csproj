@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AmazonClone.Application\AmazonClone.Application.csproj" />
+    <ProjectReference Include="..\AmazonClone.Domain\AmazonClone.Domain.csproj" />
+    <ProjectReference Include="..\AmazonClone.Infrastructure\AmazonClone.Infrastructure.csproj" />
+    <ProjectReference Include="..\AmazonClone.Persistence\AmazonClone.Persistence.csproj" />
+    <ProjectReference Include="..\AmazonClone.Shared\AmazonClone.Shared.csproj" />
+  </ItemGroup>
+
+</Project>
