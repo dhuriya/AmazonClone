@@ -10,4 +10,9 @@
     <ProjectReference Include="..\AmazonClone.Domain\AmazonClone.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Features\Categories\Mappings\" />
+    <Folder Include="Features\Categories\Validators\" />
+  </ItemGroup>
+
 </Project>
