@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AmazonClone.Application.Features.Products.Interfaces;
 
 namespace AmazonClone.Persistence.DependencyInjection
 {
@@ -18,6 +19,7 @@ namespace AmazonClone.Persistence.DependencyInjection
         {
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
             services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<IProductService, ProductService>();
             return services;
         }
     }
