@@ -13,11 +13,17 @@ namespace AmazonClone.Persistence.Services
 {
     public class CategoryService : ICategoryService
     {
+        //-----------------------------------------------------------
+        //this is for get connection string or database connection
+        //-----------------------------------------------------------
         private readonly ApplicationDbContext _context;
         public CategoryService(ApplicationDbContext context)
         {
             _context = context;
         }
+        //-------------------------
+        // Get all Category list
+        //-------------------------
         public async Task<List<CategoryDto>> GetAllAsync()
         {
             return await _context.Categories.
@@ -30,6 +36,9 @@ namespace AmazonClone.Persistence.Services
                     IsActive = c.IsActive
                 }).ToListAsync();
         }
+        //-------------------------
+        // Get category by Id
+        //-------------------------
         public async Task<CategoryDto?> GetByIdAsync(int id)
         {
             var category = await _context.Categories.
@@ -43,6 +52,9 @@ namespace AmazonClone.Persistence.Services
                 }).FirstOrDefaultAsync();
             return category;
         }
+        //-------------------------
+        //Create new category
+        //-------------------------
         public async Task<CategoryDto?> CreateAsync(CreateCategoryDto dto)
         {
             var category = new Category
@@ -61,6 +73,9 @@ namespace AmazonClone.Persistence.Services
                 IsActive = category.IsActive
             };
         }
+        //-------------------------
+        // Update category
+        //-------------------------
         public async Task<CategoryDto> UpdateAsync(UpdateCategoryDto dto)
         {
             var category = _context.Categories.FirstOrDefault(c => c.Id == dto.Id && !c.IsDeleted);
@@ -78,9 +93,18 @@ namespace AmazonClone.Persistence.Services
                 IsActive = category.IsActive
             };
         }
-        public Task<bool> DeleteAsync(int id)
+        //-------------------------
+        // Delete category
+        //-------------------------
+        public async Task<bool> DeleteAsync(int id)
         {
-            throw new NotImplementedException();
+            var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);  
+            if(category == null)
+                return false;
+            category.IsDeleted = true;
+            category.IsActive = false;
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }
