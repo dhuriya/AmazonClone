@@ -15,6 +15,7 @@ namespace AmazonClone.Domain.Entities
         public int Stock { get; set; }
         public string ImageUrl { get; set; } = string.Empty;
         public bool IsFeatured { get; set; }
+        public bool IsActive { get; set; } = true;
         // Foreign Key
         public int CategoryId { get; set; }
         // Navigation Property
