@@ -13,6 +13,7 @@ using AmazonClone.Application.Features.Products.Interfaces;
 using AmazonClone.Application.Features.Auth.Interfaces;
 using AmazonClone.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
+using AmazonClone.Application.Features.Cart.Interfaces;
 
 namespace AmazonClone.Persistence.DependencyInjection
 {
@@ -24,8 +25,8 @@ namespace AmazonClone.Persistence.DependencyInjection
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IProductService, ProductService>();
             services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>().AddDefaultTokenProviders();
-
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<ICartService, CartService>();
             return services;
         }
     }

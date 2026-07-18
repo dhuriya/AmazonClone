@@ -8,15 +8,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using AmazonClone.Shared.Constants;
 
 namespace AmazonClone.Persistence.Services
 {
     public class AuthService : IAuthService
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        public AuthService(UserManager<ApplicationUser> userManager)
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IConfiguration _configuration;
+        public AuthService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration configuration)
         {
             _userManager = userManager;
+            _signInManager = signInManager;
+            _configuration = configuration;
         }
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
         {
@@ -48,15 +57,61 @@ namespace AmazonClone.Persistence.Services
                 };
             }
 
+            await _userManager.AddToRoleAsync(user, Roles.Customer);
+
             return new AuthResponseDto
             {
                 IsSuccess = true,
                 Message = "User registered successfully."
             };
         }
-        public Task<AuthResponseDto> LoginAsync(LoginDto dto)
+        public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
         {
-            throw new NotImplementedException();
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if(user==null)
+            {
+                return new AuthResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "Invlid email or  password."
+                };
+            }
+            var result = await _signInManager.CheckPasswordSignInAsync(user, dto.Password, false);
+            if(!result.Succeeded)
+            {
+                return new AuthResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "Invalid email or password."
+                };
+            }
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Name, user.UserName!),
+                new Claim(ClaimTypes.Email, user.Email!)
+            };
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(Convert.ToDouble(_configuration["Jwt:DurationInMinutes"])),
+                signingCredentials: creds
+             );
+            return new AuthResponseDto
+            {
+                IsSuccess = true,
+                Message = "Login Successfull.",
+                Token = new JwtSecurityTokenHandler().WriteToken(token)
+            };
         }
 
     }

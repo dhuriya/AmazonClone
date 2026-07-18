@@ -20,5 +20,6 @@ namespace AmazonClone.Domain.Entities
         public int CategoryId { get; set; }
         // Navigation Property
         public Category Category { get; set; } = null!;
+        public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
     }
 }

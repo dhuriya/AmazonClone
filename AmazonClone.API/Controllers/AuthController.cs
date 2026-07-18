@@ -1,5 +1,6 @@
 ﻿using AmazonClone.Application.Features.Auth.DTOs;
 using AmazonClone.Application.Features.Auth.Interfaces;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AmazonClone.API.Controllers
@@ -13,10 +14,24 @@ namespace AmazonClone.API.Controllers
         {
             _authService = authService;
         }
+        //----------------------
+        // Register
+        //-----------------------
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDto dto)
         {
             var result = await _authService.RegisterAsync(dto);
+            if (!result.IsSuccess)
+                return BadRequest(result);
+            return Ok(result);
+        }
+        //----------------------
+        // Login
+        //----------------------
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginDto dto)
+        {
+            var result = await _authService.LoginAsync(dto);
             if (!result.IsSuccess)
                 return BadRequest(result);
             return Ok(result);

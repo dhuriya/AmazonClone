@@ -1,11 +1,15 @@
 ﻿using AmazonClone.Application.Features.Products.DTOs;
 using AmazonClone.Application.Features.Products.Interfaces;
+using AmazonClone.Shared.Constants;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AmazonClone.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")] 
+    [Route("api/[controller]")]
+    [Authorize(Roles =Roles.Admin)]
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;

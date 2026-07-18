@@ -24,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\AmazonClone.Application\AmazonClone.Application.csproj" />
     <ProjectReference Include="..\AmazonClone.Domain\AmazonClone.Domain.csproj" />
+    <ProjectReference Include="..\AmazonClone.Shared\AmazonClone.Shared.csproj" />
   </ItemGroup>
 
 </Project>
