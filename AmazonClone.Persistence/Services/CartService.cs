@@ -67,14 +67,42 @@ namespace AmazonClone.Persistence.Services
             await _context.SaveChangesAsync();
             return true;
         }
-        public Task<bool> UpdateQuantityAsync(string userId, UpdateCartItemDto dto)
+        public async Task<bool> UpdateQuantityAsync(string userId, UpdateCartItemDto dto)
         {
-            throw new NotImplementedException();
+            var cart = await _context.Carts
+                .Include(c => c.CartItem)
+                .FirstOrDefaultAsync(c => c.UserId == userId && !c.IsDeleted);
+
+            if (cart == null)
+                return false;
+
+            var cartItem = cart.CartItem
+                .FirstOrDefault(x => x.ProductId == dto.ProductId);
+
+            if (cartItem == null)
+                return false;
+
+            cartItem.Quantity = dto.Quantity;
+
+            await _context.SaveChangesAsync();
+
+            return true;
         }
 
-        public Task<bool> RemoveItemAsync(string userId, int productId)
+        public async Task<bool> RemoveItemAsync(string userId, int productId)
         {
-            throw new NotImplementedException();
+            var cart = await _context.Carts
+                .Include(c => c.CartItem)
+                .FirstOrDefaultAsync(c => c.UserId == userId && !c.IsDeleted);
+            if (cart == null)
+                return false;
+            var cartItem = cart.CartItem
+                .FirstOrDefault(x => x.ProductId == productId);
+            if (cartItem == null)
+                return false;
+            _context.CartItems.Remove(cartItem);
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

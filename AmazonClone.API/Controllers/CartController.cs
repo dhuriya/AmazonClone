@@ -1,6 +1,7 @@
 ﻿using AmazonClone.Application.Features.Cart.DTOs;
 using AmazonClone.Application.Features.Cart.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -29,6 +30,24 @@ namespace AmazonClone.API.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var result = await _cartService.GetMyCartAsync(userId);
             return Ok(result);
+        }
+        [HttpPut]
+        public async Task<IActionResult> UpdateQuantity(UpdateCartItemDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await _cartService.UpdateQuantityAsync(userId, dto);
+            if (!result)
+                return BadRequest();
+            return Ok("Cart updated successfully.");
+        }
+        [HttpDelete("{productId}")]
+        public async Task<IActionResult> RemoveItem(int productId)
+        {
+            var userid = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await _cartService.RemoveItemAsync(userid, productId);
+            if (!result)
+                return BadRequest();
+            return Ok("Item removed successfully.");
         }
     }
 }
