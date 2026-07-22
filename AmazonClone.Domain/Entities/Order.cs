@@ -15,5 +15,6 @@ namespace AmazonClone.Domain.Entities
         public string ShippingAddress { get; set; } = string.Empty;
         public string Status { get; set; } = "Pending";
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+        public Payment? Payments { get; set; }
     }
 }

@@ -24,5 +24,7 @@ namespace AmazonClone.Persistence.Context
         public DbSet<Wishlist> Wishlists { get; set; }
         public DbSet<WishlistItem> WishlistItems { get; set; }
         public DbSet<Address> Addresses { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+        public DbSet<Review> Reviews{ get; set; }
     }
 }

@@ -15,5 +15,6 @@ namespace AmazonClone.Domain.Entities
         public ICollection<Order> Orders { get; set; } = new List<Order>();
         public ICollection<Wishlist> Whislists { get; set; } = new List<Wishlist>();
         public ICollection<Address> Addresses { get; set; } = new List<Address>();
+        public ICollection<Review> Reviews { get; set; } = new List<Review>();
     }
 }
