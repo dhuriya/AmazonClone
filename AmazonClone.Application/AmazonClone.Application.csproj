@@ -15,4 +15,8 @@
     <Folder Include="Features\Categories\Validators\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="8.0.0" />
+  </ItemGroup>
+
 </Project>

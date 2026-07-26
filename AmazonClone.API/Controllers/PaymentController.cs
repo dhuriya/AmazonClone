@@ -26,9 +26,9 @@ namespace AmazonClone.API.Controllers
         [HttpGet("{orderId}")]
         public async Task<IActionResult> Get(int orderId)
         {
-            var result = _paymentService.GetPaymentAsync(orderId);
+            var result = await _paymentService.GetPaymentAsync(orderId);
             if (result == null)
-                return NotFound();
+                return NotFound();  
             return Ok(result);
         }
     }

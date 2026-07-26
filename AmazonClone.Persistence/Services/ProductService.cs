@@ -123,5 +123,46 @@ namespace AmazonClone.Persistence.Services
             await _context.SaveChangesAsync();
             return true;
         }
+        public async Task<List<ProductDto>> GetFiltereProductsAsync(ProductQueryParameters query)
+        {
+            var products = _context.Products
+                .Include(p => p.Category)
+                .Where(p => !p.IsDeleted)
+                .AsQueryable();
+            if (!string.IsNullOrWhiteSpace(query.Search))
+            {
+                products = products.Where(p => p.Name.Contains(query.Search));
+            }
+            if (query.CategoryId.HasValue)
+            {
+                products = products.Where(p =>
+                p.CategoryId == query.CategoryId.Value);
+            }
+            if (query.MinPrice.HasValue)
+            {
+                products = products.Where(p =>
+                p.Price >= query.MinPrice.Value);
+            }
+            if (query.MaxPrice.HasValue)
+            {
+                products = products.Where(p =>
+                p.Price <= query.MaxPrice.Value);
+            }
+            products = products
+                .Skip((query.PageNumber - 1) * query.PageSize)
+                .Take(query.PageSize);
+            return await products
+                .Select(p => new ProductDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    ImageUrl = p.ImageUrl,
+                    IsFeatured = p.IsFeatured,
+                    CategoryId = p.CategoryId,
+                    CategoryName = p.Category.Name
+                }).ToListAsync();
+        }
     }
 }

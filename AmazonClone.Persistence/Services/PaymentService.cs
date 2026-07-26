@@ -1,5 +1,6 @@
 ﻿using AmazonClone.Application.Features.Payments.DTOs;
 using AmazonClone.Application.Features.Payments.Interfaces;
+using AmazonClone.Application.Features.Products.DTOs;
 using AmazonClone.Domain.Entities;
 using AmazonClone.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +34,7 @@ namespace AmazonClone.Persistence.Services
                 Status = "Success"
             };
             _context.Payments.Add(payment);
+            await _context.SaveChangesAsync();
             return new PaymentDto
             {
                 Id = payment.Id,

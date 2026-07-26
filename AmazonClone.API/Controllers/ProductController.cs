@@ -55,5 +55,12 @@ namespace AmazonClone.API.Controllers
             }
             return Ok("Product deleted successfully");
         }
+        [AllowAnonymous]
+        [HttpGet("filter")]
+        public async Task<IActionResult> Filter([FromQuery] ProductQueryParameters query)
+        {
+            var result = await _productService.GetFiltereProductsAsync(query);
+            return Ok(result);
+        }
     }
 }

@@ -14,5 +14,6 @@ namespace AmazonClone.Application.Features.Products.Interfaces
         Task<ProductDto> CreateAsync(CreateProductDto dto);
         Task<ProductDto> UpdateAsync(UpdateProductDto dto);
         Task<bool> DeleteAsync(int id);
+        Task<List<ProductDto>> GetFiltereProductsAsync(ProductQueryParameters query);
     }
 }

@@ -1,3 +1,4 @@
+using AmazonClone.API.Middleware;
 using AmazonClone.Persistence.DependencyInjection;
 using AmazonClone.Persistence.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -76,6 +77,7 @@ namespace AmazonClone.API
                 app.UseSwaggerUI();
             }
             //----------------------
+            app.UseMiddleware<ExceptionMiddleware>();
             app.UseAuthentication();
             app.UseAuthorization();
 
