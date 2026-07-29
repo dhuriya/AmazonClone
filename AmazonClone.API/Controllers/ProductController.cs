@@ -1,4 +1,5 @@
-﻿using AmazonClone.Application.Features.Products.DTOs;
+﻿using AmazonClone.Application.Common;
+using AmazonClone.Application.Features.Products.DTOs;
 using AmazonClone.Application.Features.Products.Interfaces;
 using AmazonClone.Shared.Constants;
 using Microsoft.AspNetCore.Authentication;
@@ -9,7 +10,7 @@ namespace AmazonClone.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles =Roles.Admin)]
+    //[Authorize(Roles =Roles.Admin)]
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
@@ -21,13 +22,24 @@ namespace AmazonClone.API.Controllers
         public async Task<IActionResult> GetAll()
         {
             var products = await _productService.GetAllAsync();
-            return Ok(products);
+            return Ok(new ApiResponse<IEnumerable<ProductDto>>
+            {
+                Success = true,
+                Message = "Products fetched successfully",
+                Data = products
+            });
         }
         [HttpPost]
+        //[Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Create(CreateProductDto dto)
         {
             var result = await _productService.CreateAsync(dto);
-            return Ok(result);
+            return Ok(new ApiResponse<ProductDto>
+            {
+                Success = true,
+                Message = "Product created successfully.",
+                Data = result
+            });
         }
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
@@ -35,27 +47,51 @@ namespace AmazonClone.API.Controllers
             var product = await _productService.GetByIdAsync(id);
             if (product == null)
             {
-                return NotFound();
+                return NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Product not found."
+                });
             }
-            return Ok(product);
+            return Ok(new ApiResponse<ProductDto>
+            {
+                Success = true,
+                Message = "Product fetched successfully.",
+                Data = product
+            });
         }
         [HttpPut]
+        //[Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Update(UpdateProductDto dto)
         {
             var result = await _productService.UpdateAsync(dto);
-            return Ok(result);
+            return Ok(new ApiResponse<ProductDto>
+            {
+                Success = true,
+                Message = "Product updated successfully",
+                Data = result
+            });
         }
         [HttpDelete("{id}")]
+        [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Delete(int id)
         {
             var result = await _productService.DeleteAsync(id);
             if (!result)
             {
-                return NotFound();
+                return NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Product not found."
+                });
             }
-            return Ok("Product deleted successfully");
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Product deleted successfully."
+            });
         }
-        [AllowAnonymous]
+        //[AllowAnonymous]
         [HttpGet("filter")]
         public async Task<IActionResult> Filter([FromQuery] ProductQueryParameters query)
         {

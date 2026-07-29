@@ -3,6 +3,7 @@ using AmazonClone.Application.Features.Products.Interfaces;
 using AmazonClone.Domain.Entities;
 using AmazonClone.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,10 +15,12 @@ namespace AmazonClone.Persistence.Services
     public class ProductService : IProductService
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<ProductService> _logger;
 
-        public ProductService(ApplicationDbContext context)
+        public ProductService(ApplicationDbContext context, ILogger<ProductService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<List<ProductDto>> GetAllAsync()
@@ -41,6 +44,7 @@ namespace AmazonClone.Persistence.Services
         //----------------------
         public async Task<ProductDto> CreateAsync(CreateProductDto dto)
         {
+            _logger.LogInformation("Creating product: {ProductName}", dto.Name);
             var product = new Product
             {
                 Name = dto.Name,
@@ -54,6 +58,7 @@ namespace AmazonClone.Persistence.Services
             };
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
+            _logger.LogInformation("Product created successfully. Id: {ProductId}", product.Id);
             return new ProductDto
             {
                 Id = product.Id,

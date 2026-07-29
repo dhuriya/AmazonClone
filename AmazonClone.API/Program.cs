@@ -1,11 +1,15 @@
 using AmazonClone.API.Middleware;
+using AmazonClone.Application.Validators;
 using AmazonClone.Persistence.DependencyInjection;
 using AmazonClone.Persistence.Seed;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using System.Security.Cryptography.Xml;
 
 namespace AmazonClone.API
@@ -15,6 +19,11 @@ namespace AmazonClone.API
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            builder.Host.UseSerilog((context, configuration) =>
+            {
+                configuration.ReadFrom.Configuration(context.Configuration);
+            });
 
             // Add services to the container.
             builder.Services.AddPersistence(builder.Configuration);  
@@ -68,7 +77,15 @@ namespace AmazonClone.API
                     }
                 });
             });
+            builder.Services.AddFluentValidationAutoValidation();
+            builder.Services.AddValidatorsFromAssemblyContaining<CreateProductDtoValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<CreateCategoryDtoValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<RegisterDtoValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<LoginDtoValidator>();
+
             var app = builder.Build();
+
+            Log.Information("AmazonClone API started successfully.");
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -78,6 +95,8 @@ namespace AmazonClone.API
             }
             //----------------------
             app.UseMiddleware<ExceptionMiddleware>();
+            // Request Logging
+            app.UseSerilogRequestLogging();
             app.UseAuthentication();
             app.UseAuthorization();
 
@@ -89,6 +108,7 @@ namespace AmazonClone.API
 
                 await RoleSeeder.SeedAsync(roleManager);
             }
+            Log.Information("Application is running...");
             app.Run();
         }
     }
