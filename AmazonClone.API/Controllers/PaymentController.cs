@@ -1,4 +1,5 @@
-﻿using AmazonClone.Application.Features.Payments.DTOs;
+﻿using AmazonClone.Application.Common;
+using AmazonClone.Application.Features.Payments.DTOs;
 using AmazonClone.Application.Features.Payments.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,15 +22,31 @@ namespace AmazonClone.API.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var result = await _paymentService.CreatePaymentAsync(userId, dto);
-            return Ok(result);
+            return Ok(new ApiResponse<PaymentDto>
+            {
+                Success = true,
+                Message = "payment completed successfully.",
+                Data = result
+            });
         }
         [HttpGet("{orderId}")]
         public async Task<IActionResult> Get(int orderId)
         {
             var result = await _paymentService.GetPaymentAsync(orderId);
             if (result == null)
-                return NotFound();  
-            return Ok(result);
+            {
+                return NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "payment not found."
+                });
+            }
+            return Ok(new ApiResponse<PaymentDto>
+            {
+                Success = true,
+                Message = "Payment fetched successfully.",
+                Data = result
+            });
         }
     }
 }

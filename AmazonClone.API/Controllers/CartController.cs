@@ -1,4 +1,5 @@
-﻿using AmazonClone.Application.Features.Cart.DTOs;
+﻿using AmazonClone.Application.Common;
+using AmazonClone.Application.Features.Cart.DTOs;
 using AmazonClone.Application.Features.Cart.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -22,14 +23,24 @@ namespace AmazonClone.API.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var result = await _cartService.AddToCartAsync(userId, dto);
-            return Ok(result);
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Item added to cart.",
+               
+            });
         }
         [HttpGet]
         public async Task<IActionResult> GetMyCart()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var result = await _cartService.GetMyCartAsync(userId);
-            return Ok(result);
+            return Ok(new ApiResponse<CartDto>
+            {
+                Success = true,
+                Message = "Cart fetched successfully.",
+                Data = result
+            });
         }
         [HttpPut]
         public async Task<IActionResult> UpdateQuantity(UpdateCartItemDto dto)
@@ -37,8 +48,18 @@ namespace AmazonClone.API.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var result = await _cartService.UpdateQuantityAsync(userId, dto);
             if (!result)
-                return BadRequest();
-            return Ok("Cart updated successfully.");
+            {
+                return NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Cart item not found."
+                });
+            }
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Cart updated successfully."
+            });
         }
         [HttpDelete("{productId}")]
         public async Task<IActionResult> RemoveItem(int productId)
@@ -46,8 +67,18 @@ namespace AmazonClone.API.Controllers
             var userid = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var result = await _cartService.RemoveItemAsync(userid, productId);
             if (!result)
-                return BadRequest();
-            return Ok("Item removed successfully.");
+            {
+                return NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Cart item not found."
+                });
+            }
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Item removed successfully."
+            });
         }
     }
 }

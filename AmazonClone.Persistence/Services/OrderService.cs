@@ -1,4 +1,5 @@
-﻿using AmazonClone.Application.Features.Orders.DTOs;
+﻿using AmazonClone.Application.Common.Exceptions;
+using AmazonClone.Application.Features.Orders.DTOs;
 using AmazonClone.Application.Features.Orders.Interfaces;
 using AmazonClone.Domain.Entities;
 using AmazonClone.Persistence.Context;
@@ -26,7 +27,7 @@ namespace AmazonClone.Persistence.Services
                 .ThenInclude(ci => ci.Product)
                 .FirstOrDefaultAsync(c => c.UserId == userId && !c.IsDeleted);
             if (cart == null || !cart.CartItem.Any())
-                throw new Exception("Cart is Empty");
+                throw new BadRequestException("Cart is Empty");
             var order = new Order
             {
                 UserId = userId,

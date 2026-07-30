@@ -1,4 +1,5 @@
-﻿using AmazonClone.Application.Features.Products.DTOs;
+﻿using AmazonClone.Application.Common.Exceptions;
+using AmazonClone.Application.Features.Products.DTOs;
 using AmazonClone.Application.Features.Products.Interfaces;
 using AmazonClone.Domain.Entities;
 using AmazonClone.Persistence.Context;
@@ -94,7 +95,7 @@ namespace AmazonClone.Persistence.Services
         {
             var product = _context.Products.FirstOrDefault(p => p.Id == dto.Id && !p.IsDeleted);
             if(product == null)
-                throw new Exception("Product not found");
+                throw new NotFoundException("Product not found");
             product.Name = dto.Name;
             product.Description = dto.Description;
             product.Price = dto.Price;

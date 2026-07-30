@@ -1,4 +1,5 @@
-﻿using AmazonClone.Application.Features.Reviews.DTOs;
+﻿using AmazonClone.Application.Common.Exceptions;
+using AmazonClone.Application.Features.Reviews.DTOs;
 using AmazonClone.Application.Features.Reviews.Interfaces;
 using AmazonClone.Domain.Entities;
 using AmazonClone.Persistence.Context;
@@ -22,7 +23,7 @@ namespace AmazonClone.Persistence.Services
         {
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
-                throw new Exception("User not found");
+                throw new NotFoundException("User not found");
             var review = new Review
             {
                 UserId = userId,

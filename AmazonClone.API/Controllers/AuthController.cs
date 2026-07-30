@@ -1,4 +1,6 @@
-﻿using AmazonClone.Application.Features.Auth.DTOs;
+﻿using AmazonClone.Application.Common;
+using AmazonClone.Application.Features.Auth;
+using AmazonClone.Application.Features.Auth.DTOs;
 using AmazonClone.Application.Features.Auth.Interfaces;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -22,8 +24,19 @@ namespace AmazonClone.API.Controllers
         {
             var result = await _authService.RegisterAsync(dto);
             if (!result.IsSuccess)
-                return BadRequest(result);
-            return Ok(result);
+            {
+                return BadRequest(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = result.Message
+                });
+            }
+            return Ok(new ApiResponse<AuthResponseDto>
+            {
+                Success = result.IsSuccess,
+                Message = result.Message,
+                Data = result
+            });
         }
         //----------------------
         // Login
@@ -33,8 +46,19 @@ namespace AmazonClone.API.Controllers
         {
             var result = await _authService.LoginAsync(dto);
             if (!result.IsSuccess)
-                return BadRequest(result);
-            return Ok(result);
+            {
+                return BadRequest(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = result.Message
+                });
+            }
+            return Ok(new ApiResponse<AuthResponseDto>
+            {
+                Success = true,
+                Message = result.Message,
+                Data = result
+            });
         }
     }
 }

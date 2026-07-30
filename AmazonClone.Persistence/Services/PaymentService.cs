@@ -1,4 +1,5 @@
-﻿using AmazonClone.Application.Features.Payments.DTOs;
+﻿using AmazonClone.Application.Common.Exceptions;
+using AmazonClone.Application.Features.Payments.DTOs;
 using AmazonClone.Application.Features.Payments.Interfaces;
 using AmazonClone.Application.Features.Products.DTOs;
 using AmazonClone.Domain.Entities;
@@ -24,7 +25,7 @@ namespace AmazonClone.Persistence.Services
             var order = await _context.Orders
                 .FirstOrDefaultAsync(o => o.Id == dto.OrderId && o.UserId == userId);
             if (order == null)
-                throw new Exception("Order not found.");
+                throw new NotFoundException("Order not found.");
             var payment = new Payment
             {
                 OrderId = order.Id,

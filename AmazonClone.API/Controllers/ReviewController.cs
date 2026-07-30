@@ -1,4 +1,5 @@
-﻿using AmazonClone.Application.Features.Reviews.DTOs;
+﻿using AmazonClone.Application.Common;
+using AmazonClone.Application.Features.Reviews.DTOs;
 using AmazonClone.Application.Features.Reviews.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,13 +22,24 @@ namespace AmazonClone.API.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var result = await _reviewService.AddReviewAsync(userId, dto);
-            return Ok(result); 
+            return Ok(new ApiResponse<ReviewDto>
+            {
+                Success = true,
+                Message = "Review added successfully.",
+                Data = result
+            }); 
         }
         [HttpGet("{productId}")]
         public async Task<IActionResult> GetReviews(int productId)
         {
             var result = await _reviewService.GetReviewsByProductAsync(productId);
-            return Ok(result);
+            return Ok(new ApiResponse<List<ReviewDto>>
+            {
+                Success = true,
+                Message = result.Any()?"Reviews fetched successfully."
+                : "No reviews found.",
+                Data = result
+            });
         }
     }
 }

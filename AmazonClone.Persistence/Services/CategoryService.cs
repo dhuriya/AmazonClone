@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AmazonClone.Domain.Entities;
+using AmazonClone.Application.Common.Exceptions;
 
 namespace AmazonClone.Persistence.Services
 {
@@ -80,7 +81,7 @@ namespace AmazonClone.Persistence.Services
         {
             var category = _context.Categories.FirstOrDefault(c => c.Id == dto.Id && !c.IsDeleted);
             if(category == null)
-                throw new Exception("Category not found");
+                throw new NotFoundException("Category not found");
             category.Name = dto.Name;
             category.Description = dto.Description;
             category.IsActive = dto.IsActive;

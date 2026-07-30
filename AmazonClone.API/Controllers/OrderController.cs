@@ -1,4 +1,5 @@
-﻿using AmazonClone.Application.Features.Orders.DTOs;
+﻿using AmazonClone.Application.Common;
+using AmazonClone.Application.Features.Orders.DTOs;
 using AmazonClone.Application.Features.Orders.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,14 +22,24 @@ namespace AmazonClone.API.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var result = await _orderService.CheckoutAsync(userId, dto);
-            return Ok(result);
+            return Ok(new ApiResponse<OrderDto>
+            {
+                Success = true,
+                Message = "Order placed successfully.",
+                Data = result
+            });
         }
         [HttpGet]
         public async Task<IActionResult> GetMyOrders()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var result = await _orderService.GetMyOrdersAsync(userId);
-            return Ok(result);
+            return Ok(new ApiResponse<List<OrderDto>>
+            {
+                Success = true,
+                Message = "Orders fetched successfully.",
+                Data = result
+            });
         }
     }
 }
