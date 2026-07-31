@@ -3,6 +3,7 @@ using AmazonClone.Application.Features.Addresses.DTOs;
 using AmazonClone.Application.Features.Addresses.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Security.Claims;
 
 namespace AmazonClone.API.Controllers
@@ -10,6 +11,7 @@ namespace AmazonClone.API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
+    [SwaggerTag("Address Management")]
     public class AddressController : Controller
     {
         private readonly IAddressService _addressService;
@@ -18,6 +20,13 @@ namespace AmazonClone.API.Controllers
             _addressService = addressService;
         }
         [HttpPost]
+        [SwaggerOperation(
+            Summary = "Add a new address",
+            Description = "Adds a new address for the authenticated user."
+        )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Address added successfully.")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request.")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized.")]
         public async Task<IActionResult> Create(CreateAddressDto dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
@@ -30,6 +39,12 @@ namespace AmazonClone.API.Controllers
             });
         }
         [HttpGet]
+        [SwaggerOperation(
+            Summary = "Get my addresses",
+            Description = "Returns all addresses of the authenticated user."
+        )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Addresses retrieved successfully.")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized.")]
         public async Task<IActionResult> GetMyAddresses()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
@@ -42,7 +57,14 @@ namespace AmazonClone.API.Controllers
                 Data = result
             });
         }
-        [HttpDelete("{addressId}")]
+        [HttpDelete("{id}")]
+        [SwaggerOperation(
+            Summary = "Delete address",
+            Description = "Deletes an address of the authenticated user."
+        )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Address deleted successfully.")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized.")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Address not found.")]
         public async Task<IActionResult> Delete(int addressId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
@@ -59,6 +81,28 @@ namespace AmazonClone.API.Controllers
             {
                 Success = true,
                 Message = "Address deleted successfully"
+            });
+        }
+        [HttpPut]
+        [SwaggerOperation(
+            Summary = "Update address",
+            Description = "Updates an existing address for the authenticated user."
+        )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Address updated successfully.")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request.")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized.")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Address not found.")]
+        public async Task<IActionResult> Update(UpdateAddressDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+            var result = await _addressService.UpdateAsync(userId, dto);
+
+            return Ok(new ApiResponse<AddressDto>
+            {
+                Success = true,
+                Message = "Address updated successfully.",
+                Data = result
             });
         }
     }

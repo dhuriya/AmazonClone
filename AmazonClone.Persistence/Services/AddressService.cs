@@ -1,4 +1,5 @@
-﻿using AmazonClone.Application.Features.Addresses.DTOs;
+﻿using AmazonClone.Application.Common.Exceptions;
+using AmazonClone.Application.Features.Addresses.DTOs;
 using AmazonClone.Application.Features.Addresses.Interfaces;
 using AmazonClone.Domain.Entities;
 using AmazonClone.Persistence.Context;
@@ -83,9 +84,58 @@ namespace AmazonClone.Persistence.Services
                 .FirstOrDefaultAsync(a => a.Id == addressId && a.UserId == userId);
             if (address == null)
                 return false;
-            _context.Addresses.Remove(address);
+            address.IsDeleted = true;
             await _context.SaveChangesAsync();
             return true;
         }
+        public async Task<AddressDto> UpdateAsync(string userId, UpdateAddressDto dto)
+        {
+            var address = await _context.Addresses
+                .FirstOrDefaultAsync(a => a.Id == dto.Id &&
+                                          a.UserId == userId &&
+                                          !a.IsDeleted);
+
+            if (address == null)
+                throw new NotFoundException("Address not found.");
+
+            if (dto.IsDefault)
+            {
+                var oldAddresses = await _context.Addresses
+                    .Where(a => a.UserId == userId)
+                    .ToListAsync();
+
+                foreach (var item in oldAddresses)
+                {
+                    item.IsDefault = false;
+                }
+            }
+
+            address.FullName = dto.FullName;
+            address.PhoneNumber = dto.PhoneNumber;
+            address.AddressLine1 = dto.AddressLine1;
+            address.AddressLine2 = dto.AddressLine2;
+            address.City = dto.City;
+            address.State = dto.State;
+            address.PostalCode = dto.PostalCode;
+            address.Country = dto.Country;
+            address.IsDefault = dto.IsDefault;
+
+            await _context.SaveChangesAsync();
+
+            return new AddressDto
+            {
+                Id = address.Id,
+                FullName = address.FullName,
+                PhoneNumber = address.PhoneNumber,
+                AddressLine1 = address.AddressLine1,
+                AddressLine2 = address.AddressLine2,
+                City = address.City,
+                State = address.State,
+                PostalCode = address.PostalCode,
+                Country = address.Country,
+                IsDefault = address.IsDefault
+            };
+        }
+
     }
 }

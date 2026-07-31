@@ -12,5 +12,6 @@ namespace AmazonClone.Application.Features.Addresses.Interfaces
         Task<List<AddressDto>> GetMyAddressesAsync(string userId);
         Task<AddressDto> CreateAsync(string userId, CreateAddressDto dto);
         Task<bool> DeleteAsync(string userId, int addressId);
+        Task<AddressDto> UpdateAsync(string userId, UpdateAddressDto dto);
     }
 }

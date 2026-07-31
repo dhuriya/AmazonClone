@@ -10,6 +10,7 @@ using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using System.Reflection;
 using System.Security.Cryptography.Xml;
 
 namespace AmazonClone.API
@@ -53,6 +54,24 @@ namespace AmazonClone.API
             //builder.Services.AddSwaggerGen();
             builder.Services.AddSwaggerGen(options =>
             {
+                options.EnableAnnotations();
+                options.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "Amazon Clone Api",
+                    Version = "v1",
+                    Description = "A production-style E-Commerce Web API built with ASP.NET Core 8, Entity Framework Core, JWT Authentication, Clean Architecture and SQL Server.",
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Deepu",
+                        Email = "deepukasyap143@gmail.com",
+                        Url = new Uri("https://github.com/dhuriya")
+                    }
+                });
+
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+
+                options.IncludeXmlComments(xmlPath);
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
@@ -100,7 +119,7 @@ namespace AmazonClone.API
             app.UseAuthentication();
             app.UseAuthorization();
 
-
+            app.UseStaticFiles();
             app.MapControllers();
             using (var scope = app.Services.CreateScope())
             {

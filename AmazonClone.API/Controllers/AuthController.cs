@@ -4,11 +4,13 @@ using AmazonClone.Application.Features.Auth.DTOs;
 using AmazonClone.Application.Features.Auth.Interfaces;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace AmazonClone.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [SwaggerTag("Authentication APIs")]
     public class AuthController : Controller
     {
         private readonly IAuthService _authService;
@@ -20,6 +22,12 @@ namespace AmazonClone.API.Controllers
         // Register
         //-----------------------
         [HttpPost("register")]
+        [SwaggerOperation(
+            Summary = "Register a new user",
+            Description = "Creates a new customer account."
+        )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Registration successful.")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request.")]
         public async Task<IActionResult> Register(RegisterDto dto)
         {
             var result = await _authService.RegisterAsync(dto);
@@ -42,6 +50,12 @@ namespace AmazonClone.API.Controllers
         // Login
         //----------------------
         [HttpPost("login")]
+        [SwaggerOperation(
+            Summary = "Login",
+            Description = "Authenticates the user and returns a JWT token."
+        )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Login successful.")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid credentials.")]
         public async Task<IActionResult> Login(LoginDto dto)
         {
             var result = await _authService.LoginAsync(dto);
