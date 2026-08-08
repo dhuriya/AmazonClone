@@ -113,6 +113,52 @@ namespace AmazonClone.Persistence.Services
                 Token = new JwtSecurityTokenHandler().WriteToken(token)
             };
         }
+        public async Task<string> ForgotPasswordAsync(ForgotPasswordDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if(user == null)
+            {
+                return string.Empty;
+            }
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            user.PasswordResetToken = token;
+            user.PasswordResetTokenExpiry = DateTime.UtcNow.AddMinutes(15);
+            await _userManager.UpdateAsync(user);
+
+            return token;
+        }
+        public async Task<bool> ResetPasswordAsync(ResetPasswordDto dto)
+        {
+            if(dto.NewPassword != dto.ConfirmPassword)
+            {
+                return false;
+            }
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if(user == null)
+            {
+                return false;
+            }
+            if(user.PasswordResetToken !=dto.Token)
+            {
+                return false;
+            }
+            if(user.PasswordResetTokenExpiry == null || 
+                user.PasswordResetTokenExpiry < DateTime.Now)
+            {
+                return false;
+            }
+            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var result = await _userManager.ResetPasswordAsync(user,
+                resetToken, dto.NewPassword);
+            if(!result.Succeeded)
+            {
+                return false;
+            }
+            user.PasswordResetToken = null;
+            user.PasswordResetTokenExpiry = null;
+            await _userManager.UpdateAsync(user);
+            return true;
+        }
 
     }
 }
