@@ -58,11 +58,14 @@ namespace AmazonClone.Persistence.Services
             }
 
             await _userManager.AddToRoleAsync(user, Roles.Customer);
+            var verificationToke = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
             return new AuthResponseDto
             {
                 IsSuccess = true,
-                Message = "User registered successfully."
+                Message = "User registered successfully.",
+                EmailVerification = verificationToke,
+                UserId = user.Id
             };
         }
         public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
@@ -74,6 +77,14 @@ namespace AmazonClone.Persistence.Services
                 {
                     IsSuccess = false,
                     Message = "Invlid email or  password."
+                };
+            }
+            if(!user.EmailConfirmed)
+            {
+                return new AuthResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "Please verify your email before logging in."
                 };
             }
             var result = await _signInManager.CheckPasswordSignInAsync(user, dto.Password, false);
@@ -159,6 +170,15 @@ namespace AmazonClone.Persistence.Services
             await _userManager.UpdateAsync(user);
             return true;
         }
-
+        public async Task<bool> VerifyEmailAsync(string userId, string token)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if(user == null)
+            {
+                return false;
+            }
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+            return result.Succeeded;
+        }
     }
 }

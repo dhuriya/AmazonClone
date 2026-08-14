@@ -13,5 +13,6 @@ namespace AmazonClone.Application.Features.Auth.Interfaces
         Task<AuthResponseDto> LoginAsync(LoginDto dto);
         Task<string> ForgotPasswordAsync(ForgotPasswordDto dto);
         Task<bool> ResetPasswordAsync(ResetPasswordDto dto);
+        Task<bool> VerifyEmailAsync(string userId, string token);
     }
 }

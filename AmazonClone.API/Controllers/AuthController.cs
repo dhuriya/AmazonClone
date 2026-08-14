@@ -120,5 +120,33 @@ namespace AmazonClone.API.Controllers
                 Data = null
             });
         }
+        //----------------------
+        // Verify Email
+        //-----------------------
+        [HttpGet("verify-email")]
+        [SwaggerOperation(
+            Summary = "Verify email address",
+            Description = "Confirms the user's email address using the verification token.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Email verified successfully,")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid user ID or verification token.")]
+        public async Task<IActionResult> VerifyEmail(string userId, string token)
+        {
+            var result = await _authService.VerifyEmailAsync(userId, token);
+            if (!result)
+            {
+                return BadRequest(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Invalid user ID or verification token."
+                });
+            }
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Email verified successfully.",
+                Data = null
+            });
+        }
+
     }
 }
