@@ -65,10 +65,10 @@ namespace AmazonClone.API.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, "Address deleted successfully.")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized.")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Address not found.")]
-        public async Task<IActionResult> Delete(int addressId)
+        public async Task<IActionResult> Delete(int id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            var result = await _addressService.DeleteAsync(userId, addressId);
+            var result = await _addressService.DeleteAsync(userId, id);
             if (!result)
             {
                 return BadRequest(new ApiResponse<AddressDto>
@@ -77,7 +77,7 @@ namespace AmazonClone.API.Controllers
                     Message = "Address not found."
                 });
             }
-            return Ok(new ApiResponse<AddressDto>
+            return Ok(new ApiResponse<object>
             {
                 Success = true,
                 Message = "Address deleted successfully"
@@ -103,6 +103,33 @@ namespace AmazonClone.API.Controllers
                 Success = true,
                 Message = "Address updated successfully.",
                 Data = result
+            });
+        }
+        [HttpPut("{id}/set-default")]
+        [SwaggerOperation(
+            Summary = "Set default address",
+            Description = "Sets an address as the default address for the authenticated user."
+        )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Default address updated successfully.")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized.")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Address not found.")]
+        public async Task<IActionResult> SetDefault(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await _addressService.SetDefaultAsync(userId, id);
+            if(!result)
+            {
+                return NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Address not found."
+                });
+            }
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Default address updated successfully.",
+                Data = null
             });
         }
     }

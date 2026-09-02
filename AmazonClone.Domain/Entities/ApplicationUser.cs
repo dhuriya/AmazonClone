@@ -18,5 +18,10 @@ namespace AmazonClone.Domain.Entities
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
         public string? PasswordResetToken { get; set; }
         public DateTime? PasswordResetTokenExpiry { get; set; }
+        public string? LoginOtp { get; set; }
+        public DateTime? LoginOtpExpiry { get; set; }
+        public bool IsOtpVerified { get; set; }
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiry { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using AmazonClone.Application.Features.Auth.DTOs;
+using AmazonClone.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,5 +15,10 @@ namespace AmazonClone.Application.Features.Auth.Interfaces
         Task<string> ForgotPasswordAsync(ForgotPasswordDto dto);
         Task<bool> ResetPasswordAsync(ResetPasswordDto dto);
         Task<bool> VerifyEmailAsync(string userId, string token);
+        Task<string> GenerateOtpAsync(GenerateOtpDto dto);
+        Task<AuthResponseDto> VerifyOtpAsync(VerifyOtpDto dto);
+        Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenDto dto);
+        Task<AuthResponseDto> GenerateAuthTokensAsync(ApplicationUser user);
+        Task<string> GenerateEmailConfirmationTokenAsync(string email);
     }
 }

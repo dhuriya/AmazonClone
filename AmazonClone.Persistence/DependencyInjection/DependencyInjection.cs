@@ -19,6 +19,7 @@ using AmazonClone.Application.Features.Wishlist.Interfaces;
 using AmazonClone.Application.Features.Addresses.Interfaces;
 using AmazonClone.Application.Features.Payments.Interfaces;
 using AmazonClone.Application.Features.Reviews.Interfaces;
+using AmazonClone.Application.Features.Users.Interfaces;
 
 namespace AmazonClone.Persistence.DependencyInjection
 {
@@ -37,6 +38,7 @@ namespace AmazonClone.Persistence.DependencyInjection
             services.AddScoped<IAddressService, AddressService>();
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<IReviewService, ReviewService>();
+            services.AddScoped<IUserService, UserService>();
             return services;
         }
     }

@@ -136,6 +136,27 @@ namespace AmazonClone.Persistence.Services
                 IsDefault = address.IsDefault
             };
         }
-
+        public async Task<bool> SetDefaultAsync(string userId,int addressId)
+        {
+            var address = await _context.Addresses
+                .FirstOrDefaultAsync(a => 
+                a.Id == addressId && 
+                a.UserId == userId && 
+                !a.IsDeleted);
+            if(address == null)
+            {
+                return false;
+            }
+            var addresses = await _context.Addresses
+                .Where(a => a.UserId == userId && !a.IsDeleted)
+                .ToListAsync();
+            foreach(var item in addresses)
+            {
+                item.IsDefault = item.Id == addressId;
+            }
+            address.IsDefault = true;
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }
