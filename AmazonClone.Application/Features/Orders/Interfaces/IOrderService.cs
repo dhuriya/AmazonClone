@@ -11,5 +11,7 @@ namespace AmazonClone.Application.Features.Orders.Interfaces
     {
         Task<OrderDto> CheckoutAsync(string userId, CreateOrderDto dto);
         Task<List<OrderDto>> GetMyOrdersAsync(string userId);
+        Task<bool> CancelOrderAsync(string userId, int orderId);
+        Task<OrderDto?> GetByIdAsync(string userId, int orderId);
     }
 }
