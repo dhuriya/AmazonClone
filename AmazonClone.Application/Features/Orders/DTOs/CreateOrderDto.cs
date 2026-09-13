@@ -9,5 +9,6 @@ namespace AmazonClone.Application.Features.Orders.DTOs
     public class CreateOrderDto
     {
         public string ShippingAddress { get; set; } = string.Empty;
+        public string PaymentMethod { get; set; } = "COD";
     }
 }

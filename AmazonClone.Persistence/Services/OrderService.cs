@@ -23,87 +23,96 @@ namespace AmazonClone.Persistence.Services
 
         public async Task<OrderDto> CheckoutAsync(string userId, CreateOrderDto dto)
         {
-            var cart = await _context.Carts
-                .Include(c => c.CartItem)
-                .ThenInclude(ci => ci.Product)
-                .FirstOrDefaultAsync(c =>
-                    c.UserId == userId &&
-                    !c.IsDeleted);
+            if (string.IsNullOrWhiteSpace(dto.ShippingAddress))
+            {
+                throw new BadRequestException("Shipping address is required.");
+            }
+            if (string.IsNullOrWhiteSpace(dto.PaymentMethod))
+            {
+                throw new BadRequestException("Payment method is required.");
+            }
 
-            if (cart == null || !cart.CartItem.Any())
-                throw new BadRequestException("Cart is Empty");
+            var cart = await _context.Carts.Include(c => c.CartItem)
+                .ThenInclude(ci => ci.Product).FirstOrDefaultAsync(c =>
+                    c.UserId == userId && !c.IsDeleted);
 
-            await using var transaction =
-                await _context.Database.BeginTransactionAsync();
+            if (cart == null ||
+                !cart.CartItem.Any(ci => !ci.IsDeleted))
+            {
+                throw new BadRequestException("Cart is empty.");
+            }
 
+            await using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                var validCartItems = cart.CartItem.Where(ci => !ci.IsDeleted).ToList();
+                decimal subTotal = 0;
                 var order = new Order
                 {
                     UserId = userId,
-                    ShippingAddress = dto.ShippingAddress,
-                    Status = OrderStatus.Pending,
-                    TotalAmount = 0
+                    OrderNumber = GenerateOrderNumber(),
+                    ShippingAddress = dto.ShippingAddress.Trim(),
+                    PaymentMethod = dto.PaymentMethod.Trim(),
+                    PaymentStatus = "Pending",
+                    Status = OrderStatus.Pending
                 };
-
-                foreach (var item in cart.CartItem)
+                order.TrackingHistory.Add(
+                new OrderTracking
                 {
-                    var product = item.Product;
-
-                    if (product == null ||
-                        product.IsDeleted ||
-                        !product.IsActive)
+                    Status = OrderStatus.Pending,
+                    Remarks = "Order placed successfully",
+                    UpdatedBy = userId
+                });
+                foreach (var cartItem in validCartItems)
+                {
+                    var product = cartItem.Product;
+                    if (product == null || product.IsDeleted || !product.IsActive)
                     {
                         throw new BadRequestException(
-                            $"Product '{item.ProductId}' is no longer available.");
+                            $"Product '{cartItem.ProductId}' is no longer available.");
                     }
-
-                    if (item.Quantity <= 0)
+                    if (cartItem.Quantity <= 0)
                     {
                         throw new BadRequestException(
                             $"Invalid quantity for product '{product.Name}'.");
                     }
-
-                    if (item.Quantity > product.Stock)
+                    if (cartItem.Quantity > product.Stock)
                     {
                         throw new BadRequestException(
                             $"Insufficient stock for product '{product.Name}'. " +
                             $"Available stock: {product.Stock}.");
                     }
-
-                    order.OrderItems.Add(new OrderItem
+                    var itemTotal = product.Price * cartItem.Quantity;
+                    var orderItem = new OrderItem
                     {
                         ProductId = product.Id,
-                        Price = product.Price,
-                        Quantity = item.Quantity
-                    });
-
-                    order.TotalAmount += product.Price * item.Quantity;
-
-                    product.Stock -= item.Quantity;
+                        ProductName = product.Name,
+                        UnitPrice = product.Price,
+                        Quantity = cartItem.Quantity,
+                        TaxAmount = 0,
+                        DiscountAmount = 0,
+                        TotalAmount = itemTotal
+                    };
+                    order.OrderItems.Add(orderItem);
+                    subTotal += itemTotal;
+                    // Deduct stock
+                    product.Stock -= cartItem.Quantity;
                 }
+                order.SubTotal = subTotal;
+                // For now tax/shipping/discount are zero.
+                // Coupon, GST and shipping module will be added later.
+                order.TaxAmount = 0;
+                order.ShippingAmount = 0;
+                order.DiscountAmount = 0;
 
+                order.TotalAmount = order.SubTotal + order.TaxAmount + order.ShippingAmount
+                    - order.DiscountAmount;
                 _context.Orders.Add(order);
-
-                _context.CartItems.RemoveRange(cart.CartItem);
-
+                // Clear cart after successful order creation
+                _context.CartItems.RemoveRange(validCartItems);
                 await _context.SaveChangesAsync();
-
                 await transaction.CommitAsync();
-
-                return new OrderDto
-                {
-                    Id = order.Id,
-                    TotalAmount = order.TotalAmount,
-                    Status = order.Status,
-                    ShippingAddress = order.ShippingAddress,
-                    Items = order.OrderItems.Select(x => new OrderItemDto
-                    {
-                        ProductName = x.Product?.Name ?? string.Empty,
-                        Price = x.Price,
-                        Quantity = x.Quantity
-                    }).ToList()
-                };
+                return MapToDto(order);
             }
             catch
             {
@@ -113,72 +122,152 @@ namespace AmazonClone.Persistence.Services
         }
         public async Task<List<OrderDto>> GetMyOrdersAsync(string userId)
         {
-            var orders = await _context.Orders
+            var orders = await _context.Orders.AsNoTracking()
                 .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
                 .Where(o => o.UserId == userId && !o.IsDeleted)
+                .OrderByDescending(o => o.CreatedOn)
                 .ToListAsync();
-            return orders.Select(order => new OrderDto
-            {
-                Id = order.Id,
-                TotalAmount = order.TotalAmount,
-                Status = order.Status,
-                ShippingAddress = order.ShippingAddress,
-                Items = order.OrderItems.Select(item => new OrderItemDto
-                {
-                    ProductName = item.Product.Name,
-                    Price = item.Price,
-                    Quantity = item.Quantity
-                }).ToList()
-            }).ToList();
-        }
-        public async Task<bool> CancelOrderAsync(string userId, int orderId)
-        {
-            var order = await _context.Orders.Include(o => o.OrderItems)
-                .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId && !o.IsDeleted);
-            if(order == null)
-            {
-                return false;
-            }
-            if(order.Status != OrderStatus.Pending)
-            {
-                return false;
-            }
-            foreach (var item in order.OrderItems)
-            {
-                var product = await _context.Products
-                    .FirstOrDefaultAsync(p => p.Id == item.ProductId);
-                if(product != null && !product.IsDeleted)
-                {
-                    product.Stock += item.Quantity;
-                }
-            }
-            order.Status = "Cancelled";
-            await _context.SaveChangesAsync();
-            return true;
+            return orders.Select(MapToDto).ToList();
         }
         public async Task<OrderDto?> GetByIdAsync(string userId, int orderId)
         {
-            var order = await _context.Orders
+            var order = await _context.Orders.AsNoTracking()
                 .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
-                .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId && !o.IsDeleted);
+                .FirstOrDefaultAsync(o => o.Id == orderId &&
+                    o.UserId == userId && !o.IsDeleted);
             if (order == null)
             {
                 return null;
             }
+            return MapToDto(order);
+        }
+        public async Task<bool> CancelOrderAsync(string userId, int orderId)
+        {
+            var order = await _context.Orders.Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.Id == orderId &&
+                    o.UserId == userId && !o.IsDeleted);
+            if (order == null)
+            {
+                return false;
+            }
+            // Customer can cancel only pending orders for now.
+            if (order.Status != OrderStatus.Pending)
+            {
+                return false;
+            }
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                foreach (var item in order.OrderItems)
+                {
+                    var product = await _context.Products
+                        .FirstOrDefaultAsync(p => p.Id == item.ProductId &&
+                            !p.IsDeleted);
+                    if (product != null)
+                    {
+                        product.Stock += item.Quantity;
+                    }
+                }
+                order.Status = OrderStatus.Cancelled;
+                order.ModifiedOn = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+        private static string GenerateOrderNumber()
+        {
+            return $"AMZ-{DateTime.UtcNow:yyyyMMddHHmmssfff}";
+        }
+        private static OrderDto MapToDto(Order order)
+        {
             return new OrderDto
             {
                 Id = order.Id,
+                OrderNumber = order.OrderNumber,
+                SubTotal = order.SubTotal,
+                TaxAmount = order.TaxAmount,
+                ShippingAmount = order.ShippingAmount,
+                DiscountAmount = order.DiscountAmount,
                 TotalAmount = order.TotalAmount,
-                Status = order.Status,
+                Status = order.Status.ToString(),
+                PaymentMethod = order.PaymentMethod,
+                PaymentStatus = order.PaymentStatus,
                 ShippingAddress = order.ShippingAddress,
-                Items = order.OrderItems.Select(item => new OrderItemDto
+                CreatedOn = order.CreatedOn,
+
+                Items = order.OrderItems
+                    .Select(item => new OrderItemDto
+                    {
+                        ProductId = item.ProductId,
+                        ProductName = item.ProductName,
+                        UnitPrice = item.UnitPrice,
+                        Quantity = item.Quantity,
+                        TaxAmount = item.TaxAmount,
+                        DiscountAmount = item.DiscountAmount,
+                        TotalAmount = item.TotalAmount
+                    })
+                    .ToList()
+            };
+        }
+        public async Task<List<OrderTrackingDto>> GetTrackingAsync(string userId, int orderId)
+        {
+            var order = await _context.Orders.AsNoTracking().
+                FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId && !o.IsDeleted);
+            if (order == null)
+            {
+                return new List<OrderTrackingDto>();
+            }
+            var tracking = await _context.OrderTrackings.AsNoTracking().
+                Where(t => t.OrderId == orderId).
+                OrderBy(t => t.CreatedOn).Select(t => new OrderTrackingDto
                 {
-                    ProductName = item.Product?.Name ?? string.Empty,
-                    Price = item.Price,
-                    Quantity = item.Quantity
-                }).ToList()
+                    Status = t.Status.ToString(),
+                    Remarks = t.Remarks,
+                    Location = t.Location,
+                    UpdatedBy = t.UpdatedBy
+                }).ToListAsync();
+            return tracking;
+        }
+        public async Task<bool> UpdateOrderStatusAsync(string userId, int orderId, OrderStatus status, string? remarks, string? location)
+        {
+            var order = await _context.Orders.Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.Id == orderId && !o.IsDeleted);
+            var currentStatus = order.Status;
+            if (!IsValidStatusTransition(currentStatus,status))
+            {
+                return false;
+            }
+            order.Status = status;
+            order.ModifiedOn = DateTime.UtcNow;
+            order.TrackingHistory.Add(new OrderTracking
+            {
+                Status = status,
+                Remarks = remarks ?? $"Order status updated to {status}.",
+                Location = location,
+                UpdatedBy = userId
+            });
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        private bool IsValidStatusTransition(OrderStatus currentStatus, OrderStatus newStatus)
+        {
+            if (currentStatus == newStatus)
+            {
+                return false; // No transition if the status is the same
+            }
+            return newStatus switch
+            {
+                OrderStatus.Confirmed => newStatus == OrderStatus.Pending,
+                OrderStatus.Shipped => newStatus == OrderStatus.Confirmed,
+                OrderStatus.Delivered => newStatus == OrderStatus.Shipped,
+                OrderStatus.Cancelled => false, // Cannot transition from Cancelled to any other status
+                _ => false, // Allow all other transitions
             };
         }
     }

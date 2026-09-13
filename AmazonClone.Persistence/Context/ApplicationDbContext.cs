@@ -26,5 +26,6 @@ namespace AmazonClone.Persistence.Context
         public DbSet<Address> Addresses { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Review> Reviews{ get; set; }
+        public DbSet<OrderTracking> OrderTrackings { get; set; }
     }
 }

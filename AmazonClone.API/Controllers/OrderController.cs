@@ -111,5 +111,60 @@ namespace AmazonClone.API.Controllers
                 Data = result
             });
         }
+        [HttpGet("{orderId}/tracking")]
+        [SwaggerOperation(
+            Summary = "Get order tracking information",
+            Description = "Returns tracking information for a specific order belonging to the authenticated user."
+        )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Tracking information retrieved successfully.")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized.")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Order not found.")]
+        public async Task<IActionResult> GetTracking(int orderId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await _orderService.GetTrackingAsync(userId, orderId);
+            if (result == null || !result.Any())
+            {
+                return NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Order not found or no tracking information available."
+                });
+            }
+            return Ok(new ApiResponse<List<OrderTrackingDto>>
+            {
+                Success = true,
+                Message = "Tracking information fetched successfully.",
+                Data = result
+            });
+        }
+        [HttpPut("{orderId}/status")]
+        [SwaggerOperation(
+            Summary = "Update order status",
+            Description = "Updates the status of a specific order belonging to the authenticated user."
+        )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Order status updated successfully.")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Order status cannot be updated.")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized.")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Order not found.")]
+        public async Task<IActionResult> UpdateOrderStatus(int orderId, UpdateOrderStatusDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await _orderService.UpdateOrderStatusAsync(userId, orderId, dto.Status, dto.Remarks, dto.Location);
+            if (!result)
+            {
+                return BadRequest(new ApiResponse<string>
+                {
+                    Success = false,
+                    Message = "Order not found or status cannot be updated."
+                });
+            }
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Order status updated successfully.",
+                Data = null
+            });
+        }
     }
 }
