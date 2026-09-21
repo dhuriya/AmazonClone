@@ -166,5 +166,48 @@ namespace AmazonClone.API.Controllers
                 Data = null
             });
         }
+        [HttpPost("{orderId}/return")]
+        [SwaggerOperation(
+            Summary = "Request order return",
+            Description = "Requests a return for a specific order belonging to the authenticated user."
+        )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Return request submitted successfully.")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Return request cannot be submitted.")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized.")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Order not found.")]
+        public async Task<IActionResult> RequestReturn(int orderId, [FromBody] CreateReturnRequestDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new ApiResponse<string>
+                {
+                    Success = false,
+                    Message = "User is not authenticated."
+                });
+            }
+            if (string.IsNullOrWhiteSpace(dto.Reason))
+            {
+                return BadRequest(new ApiResponse<string>
+                {
+                    Success = false,
+                    Message = "Return reason cannot be empty."
+                });
+            }
+            var result = await _orderService.RequestReturnAsync(userId, orderId, dto.Reason);
+            if (!result)
+            {
+                return BadRequest(new ApiResponse<string>
+                {
+                    Success = false,
+                    Message = "Return request cannot be submitted. Order not found or return not allowed."
+                });
+            }
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Return request submitted successfully."
+            });
+        }
     }
 }

@@ -1,3 +1,6 @@
+using AmzonClone.Web.Services;
+using AmzonClone.Web.Services.Interfaces;
+
 namespace AmzonClone.Web
 {
     public class Program
@@ -8,7 +11,14 @@ namespace AmzonClone.Web
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
-
+            builder.Services.AddHttpClient("AmazonApi", client =>
+            {
+                client.BaseAddress =new Uri(
+                    builder.Configuration["ApiSettings:BaseUrl"] 
+                    ?? "https://localhost:5001");
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+            });
+            builder.Services.AddScoped<IApiClient, ApiClient>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

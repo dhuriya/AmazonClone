@@ -255,6 +255,30 @@ namespace AmazonClone.Persistence.Services
             await _context.SaveChangesAsync();
             return true;
         }
+        public async Task<bool> RequestReturnAsync(string userId, int orderId, string reason)
+        {
+            var order = await _context.Orders.Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId && !o.IsDeleted);
+            if (order == null)
+            {
+                return false; // Return can only be requested for delivered orders
+            }
+            if(!IsValidStatusTransition(order.Status,OrderStatus.ReturnRequested))
+            {
+                return false;
+            }
+            order.Status = OrderStatus.ReturnRequested;
+            order.TrackingHistory.Add(new OrderTracking
+            {
+                OrderId = orderId,
+                Status = OrderStatus.ReturnRequested,
+                Remarks = reason,
+                UpdatedBy = userId,
+                CreatedOn = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
+            return true;
+        }
         private bool IsValidStatusTransition(OrderStatus currentStatus, OrderStatus newStatus)
         {
             if (currentStatus == newStatus)
@@ -263,10 +287,21 @@ namespace AmazonClone.Persistence.Services
             }
             return newStatus switch
             {
-                OrderStatus.Confirmed => newStatus == OrderStatus.Pending,
-                OrderStatus.Shipped => newStatus == OrderStatus.Confirmed,
-                OrderStatus.Delivered => newStatus == OrderStatus.Shipped,
-                OrderStatus.Cancelled => false, // Cannot transition from Cancelled to any other status
+                OrderStatus.Confirmed => currentStatus == OrderStatus.Pending,
+                OrderStatus.Packed => currentStatus == OrderStatus.Confirmed,
+                OrderStatus.Shipped => currentStatus == OrderStatus.Packed,
+                OrderStatus.InTransit => currentStatus == OrderStatus.Shipped,
+                OrderStatus.OutForDelivery => currentStatus == OrderStatus.InTransit,
+                OrderStatus.Delivered => currentStatus == OrderStatus.OutForDelivery,
+                OrderStatus.Cancelled => currentStatus == OrderStatus.Pending ||
+                    currentStatus == OrderStatus.Confirmed,
+                OrderStatus.ReturnRequested => currentStatus == OrderStatus.Delivered,
+                OrderStatus.Returned => currentStatus == OrderStatus.ReturnRequested,
+                OrderStatus.RefundRequested => currentStatus == OrderStatus.Cancelled ||
+                    currentStatus == OrderStatus.Returned,
+                OrderStatus.Refunded => currentStatus == OrderStatus.RefundRequested,
+                OrderStatus.ExchangeRequested => currentStatus == OrderStatus.Delivered,
+                OrderStatus.Exchanged => currentStatus == OrderStatus.ExchangeRequested, // Cannot transition from Cancelled to any other status
                 _ => false, // Allow all other transitions
             };
         }
