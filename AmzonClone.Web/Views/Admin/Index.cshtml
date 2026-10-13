@@ -1,0 +1,117 @@
+﻿@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Overview";
+}
+
+<section class="dashboard-header">
+    <div>
+        <span class="dashboard-eyebrow">STORE OVERVIEW</span>
+        <h1>Good morning, Admin <span aria-hidden="true">✦</span></h1>
+        <p>Here’s an overview of what’s happening in your store.</p>
+    </div>
+    <button class="dashboard-date" type="button">
+        <i class="bi bi-calendar3"></i>
+        Last 30 days
+        <i class="bi bi-chevron-down"></i>
+    </button>
+</section>
+<section class="dashboard-stats" aria-label="Store summary">
+    <article class="stat-card">
+        <div class="stat-card-top">
+            <span>Total revenue</span>
+            <span class="stat-icon revenue-icon"><i class="bi bi-currency-rupee"></i></span>
+        </div>
+        <strong>—</strong>
+        <small>Connect admin reports API</small>
+    </article>
+
+    <article class="stat-card">
+        <div class="stat-card-top">
+            <span>Total orders</span>
+            <span class="stat-icon orders-icon"><i class="bi bi-bag-check"></i></span>
+        </div>
+        <strong>—</strong>
+        <small>Store-wide data not connected</small>
+    </article>
+
+    <article class="stat-card">
+        <div class="stat-card-top">
+            <span>Products</span>
+            <span class="stat-icon products-icon"><i class="bi bi-box-seam"></i></span>
+        </div>
+        <strong>—</strong>
+        <small>Connect product summary</small>
+    </article>
+
+    <article class="stat-card">
+        <div class="stat-card-top">
+            <span>Customers</span>
+            <span class="stat-icon customers-icon"><i class="bi bi-people"></i></span>
+        </div>
+        <strong>—</strong>
+        <small>Connect admin customers API</small>
+    </article>
+</section>
+
+<section class="dashboard-content">
+    <article class="dashboard-panel revenue-panel">
+        <div class="panel-heading">
+            <div>
+                <h2>Revenue</h2>
+                <p>Sales performance over time</p>
+            </div>
+            <span class="api-status">
+                <i></i> Waiting for reporting API
+            </span>
+        </div>
+
+        <div class="revenue-placeholder">
+            <span class="placeholder-icon"><i class="bi bi-bar-chart-line"></i></span>
+            <strong>Revenue chart will appear here</strong>
+            <p>Connect the admin reporting endpoint to show live sales data.</p>
+        </div>
+    </article>
+
+    <article class="dashboard-panel">
+        <div class="panel-heading">
+            <div>
+                <h2>Quick access</h2>
+                <p>Common store tasks</p>
+            </div>
+        </div>
+
+        <a class="quick-action" href="#">
+            <span class="quick-action-icon"><i class="bi bi-box-seam"></i></span>
+            <span><strong>Manage products</strong><small>Catalog and stock</small></span>
+            <i class="bi bi-arrow-up-right"></i>
+        </a>
+
+        <a class="quick-action" href="#">
+            <span class="quick-action-icon"><i class="bi bi-receipt"></i></span>
+            <span><strong>View orders</strong><small>Fulfillment and status</small></span>
+            <i class="bi bi-arrow-up-right"></i>
+        </a>
+
+        <a class="quick-action" href="#">
+            <span class="quick-action-icon"><i class="bi bi-collection"></i></span>
+            <span><strong>Manage categories</strong><small>Organize your catalog</small></span>
+            <i class="bi bi-arrow-up-right"></i>
+        </a>
+    </article>
+</section>
+
+<section class="dashboard-panel recent-orders">
+    <div class="panel-heading">
+        <div>
+            <h2>Recent orders</h2>
+            <p>Your latest store orders</p>
+        </div>
+        <a href="#">View all</a>
+    </div>
+
+    <div class="orders-empty">
+        <i class="bi bi-inbox"></i>
+        <strong>Order data isn’t connected yet</strong>
+        <p>We’ll show store-wide orders after adding a protected admin API endpoint.</p>
+    </div>
+</section>

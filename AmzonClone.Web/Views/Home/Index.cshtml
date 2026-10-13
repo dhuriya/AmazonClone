@@ -1,8 +1,206 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model AmzonClone.Web.Models.Home.HomeViewModel
+@{
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<!-- ================= HERO ================= -->
+<section class="hero-section text-white">
+    <div class="container py-5">
+        <div class="row align-items-center py-5">
+            <div class="col-lg-7 fade-in-up">
+                <span class="hero-badge">
+                    <span class="dot"></span> AmazonClone
+                </span>
+                <h1 class="hero-title">
+                    Everything you need,<br />
+                    <span class="accent">all in one place.</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Discover millions of products, unbeatable deals, and a shopping
+                    experience designed around you.
+                </p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a asp-controller="Product" asp-action="Index"
+                       class="btn btn-warning btn-lg">
+                        Shop Now <i class="bi bi-arrow-right"></i>
+                    </a>
+                    <a href="#categories" class="btn btn-outline-light btn-lg">
+                        Browse Categories
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-5 text-center mt-5 mt-lg-0">
+                <div class="hero-icon-wrap">
+                    <i class="bi bi-bag-check"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ================= ALERTS ================= -->
+@if (!string.IsNullOrWhiteSpace(Model?.ErrorMessage))
+{
+    <div class="container mt-4">
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle me-2"></i>@Model.ErrorMessage
+        </div>
+    </div>
+}
+@if (ViewBag.ApiError != null)
+{
+    <div class="container mt-3">
+        <div class="alert alert-danger">
+            <i class="bi bi-x-circle me-2"></i>@ViewBag.ApiError
+        </div>
+    </div>
+}
+
+<!-- ================= CATEGORIES ================= -->
+<section class="container py-5" id="categories">
+    <div class="section-head">
+        <div>
+            <h2>Shop by Category</h2>
+            <p>Explore our most popular collections</p>
+        </div>
+        <a asp-controller="Product" asp-action="Index" class="link-view-all">
+            View All <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+
+    <div class="row g-4">
+        @if (Model?.Categories?.Any() == true)
+        {
+            foreach (var category in Model.Categories)
+            {
+                <div class="col-6 col-md-4 col-lg-3">
+                    <a asp-controller="Product" asp-action="Index"
+                       asp-route-categoryId="@category.Id"
+                       class="d-block h-100">
+                        <div class="category-card">
+                            @if (!string.IsNullOrWhiteSpace(category.ImageUrl))
+                            {
+                                <img src="@category.ImageUrl" alt="@category.Name" loading="lazy" />
+                            }
+                            else
+                            {
+                                <div class="category-icon">
+                                    <i class="bi bi-grid"></i>
+                                </div>
+                            }
+                            <h5>@category.Name</h5>
+                        </div>
+                    </a>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="empty-state">
+                    <i class="bi bi-grid"></i>
+                    <p>No categories available.</p>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+<!-- ================= FEATURED PRODUCTS ================= -->
+<section class="container pb-5">
+    <div class="section-head">
+        <div>
+            <h2>Featured Products</h2>
+            <p>Handpicked favorites just for you</p>
+        </div>
+        <a asp-controller="Product" asp-action="Index" class="link-view-all">
+            View All <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+
+    <div class="row g-4">
+        @if (Model?.FeaturedProducts?.Any() == true)
+        {
+            foreach (var product in Model.FeaturedProducts.Take(8))
+            {
+                var hasOffer = product.OfferPrice.HasValue && product.Price > product.OfferPrice.Value;
+                var discount = hasOffer
+                ? (int)((product.Price - product.OfferPrice!.Value) / product.Price * 100)
+                : 0;
+
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="product-card">
+                        <div class="product-image-wrap">
+                            @if (hasOffer)
+                            {
+                                <span class="discount-badge">-@discount% OFF</span>
+                            }
+                            <button class="wishlist-btn" type="button" title="Add to wishlist">
+                                <i class="bi bi-heart"></i>
+                            </button>
+
+                            @if (!string.IsNullOrWhiteSpace(product.ImageUrl))
+                            {
+                                <img src="@product.ImageUrl" alt="@product.Name" loading="lazy" />
+                            }
+                            else
+                            {
+                                <i class="bi bi-image text-muted" style="font-size:4rem;"></i>
+                            }
+                        </div>
+
+                        <div class="product-body">
+                            <h6 class="product-title" title="@product.Name">
+                                @product.Name
+                            </h6>
+
+                            <div class="product-rating">
+                                <span class="stars">
+                                    <i class="bi bi-star-fill"></i>
+                                </span>
+                                <span>@product.Rating.ToString("0.0")</span>
+                                <span class="count">(@product.ReviewCount)</span>
+                            </div>
+
+                            <div class="product-price">
+                                @if (hasOffer)
+                                {
+                                    <span class="current">
+                                        ₹@product.OfferPrice!.Value.ToString("N0")
+                                    </span>
+                                    <span class="old">
+                                        ₹@product.Price.ToString("N0")
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="current">
+                                        ₹@product.Price.ToString("N0")
+                                    </span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="product-footer">
+                            <a asp-controller="Product"
+                               asp-action="Details"
+                               asp-route-id="@product.Id"
+                               class="btn-view">
+                                <i class="bi bi-eye"></i> View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="empty-state">
+                    <i class="bi bi-box-seam"></i>
+                    <p>No products available right now.</p>
+                </div>
+            </div>
+        }
+    </div>
+</section>

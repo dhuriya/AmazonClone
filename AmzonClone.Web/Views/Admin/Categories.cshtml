@@ -1,0 +1,128 @@
+﻿@model List<AmzonClone.Web.Models.Admin.CategoryAdminViewModel>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Categories";
+}
+
+<section class="dashboard-header">
+    <div>
+        <span class="dashboard-eyebrow">CATALOG MANAGEMENT</span>
+        <h1>Categories</h1>
+        <p>Create and manage your store categories.</p>
+    </div>
+</section>
+
+<div class="category-layout">
+    <section class="dashboard-panel category-form-panel">
+        <div class="panel-heading">
+            <div>
+                <h2>Add category</h2>
+                <p>Create a new product category</p>
+            </div>
+            <span class="category-form-icon"><i class="bi bi-folder-plus"></i></span>
+        </div>
+        @if (TempData["CategorySuccess"] is string success)
+        {
+            <div class="alert alert-success">@success</div>
+        }
+
+        @if (TempData["CategoryError"] is string error)
+        {
+            <div class="alert alert-danger">@error</div>
+        }
+        <form asp-controller="Admin" asp-action="CreateCategory" method="post">
+            <div class="category-field">
+                <label for="categoryName">Category name</label>
+                <input id="categoryName" name="Name" type="text" maxlength="100" required placeholder="e.g. Electronics" />
+            </div>
+            <div class="category-field">
+                <label for="categoryDescription">Description</label>
+                <textarea id="categoryDescription" name="Description" rows="4" placeholder="Write a short description"></textarea>
+            </div>
+            <button class="category-submit" type="submit">
+                <i class="bi bi-plus-lg"></i> Add category
+            </button>
+        </form>
+    </section>
+    <section class="dashboard-panel category-table-panel">
+        <div class="panel-heading category-table-heading">
+            <div>
+                <h2>All categories</h2>
+                <p>Search, filter, edit, or remove categories.</p>
+            </div>
+            <span class="category-count">3 categories</span>
+        </div>
+        <div class="category-filters">
+            <label class="category-search">
+                <i class="bi bi-search"></i>
+                <input type="search" placeholder="Search categories..." />
+            </label>
+
+            <select aria-label="Filter by status">
+                <option value="">All statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
+
+            <select aria-label="Sort categories">
+                <option value="name">Sort: Name</option>
+                <option value="newest">Sort: Newest</option>
+            </select>
+        </div>
+        <div class="table-responsive">
+            <table class="category-table">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        foreach (var category in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@category.Name</strong>
+                                    <small>ID: @category.Id</small>
+                                </td>
+                                <td>@(category.Description ?? "—")</td>
+                                <td>
+                                    @if (category.IsActive)
+                                    {
+                                        <span class="category-status active-status">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="category-status inactive-status">Inactive</span>
+                                    }
+                                </td>
+                                <td class="category-actions">
+                                    <button type="button" class="edit-button"
+                                            aria-label="Edit @category.Name">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button type="button" class="delete-button"
+                                            aria-label="Delete @category.Name">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center py-4">
+                                @(ViewBag.ApiError ?? "Koi category nahi mili.")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>

@@ -1,4 +1,6 @@
 using AmzonClone.Web.Models;
+using AmzonClone.Web.Models.Home;
+using AmzonClone.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -6,16 +8,30 @@ namespace AmzonClone.Web.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly IApiClient _apiClient;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(IApiClient apiClient)
         {
-            _logger = logger;
+            _apiClient = apiClient;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var model = new HomeViewModel();
+            try
+            {
+                var response = await _apiClient.GetAsync<ApiResponse<List<CategoryViewModel>>>("Category");
+                model.Categories = response?.Data?.ToList() ?? new List<CategoryViewModel>();
+
+                var featuredResponse = await _apiClient.GetAsync<ApiResponse<List<ProductViewModel>>>("Product");
+                model.FeaturedProducts = featuredResponse?.Data?.ToList() ?? new List<ProductViewModel>();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+                model.ErrorMessage = "Unable to fetch data from the API. Please try again later.";
+            }
+            return View(model);
         }
 
         public IActionResult Privacy()
