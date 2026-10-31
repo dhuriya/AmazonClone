@@ -16,31 +16,40 @@
     <section class="dashboard-panel category-form-panel">
         <div class="panel-heading">
             <div>
-                <h2>Add category</h2>
+                <h2 id="categoryFormTitle">Add category</h2>
                 <p>Create a new product category</p>
             </div>
             <span class="category-form-icon"><i class="bi bi-folder-plus"></i></span>
         </div>
+
+        <div id="toastContainer" class="toast-container"></div>
         @if (TempData["CategorySuccess"] is string success)
         {
-            <div class="alert alert-success">@success</div>
+            <div id="toastMessage" data-type="success" data-message="@success"></div>
         }
 
         @if (TempData["CategoryError"] is string error)
         {
-            <div class="alert alert-danger">@error</div>
+            <div id="toastMessage" data-type="error" data-message="@error"></div>
         }
-        <form asp-controller="Admin" asp-action="CreateCategory" method="post">
+        <form id="categoryForm" asp-controller="Admin" asp-action="CreateCategory" method="post" data-get-url="@Url.Action("GetCategory","Admin")">
             <div class="category-field">
                 <label for="categoryName">Category name</label>
+                <input type="hidden" id="categoryId" name="id" value="" />
                 <input id="categoryName" name="Name" type="text" maxlength="100" required placeholder="e.g. Electronics" />
             </div>
             <div class="category-field">
                 <label for="categoryDescription">Description</label>
                 <textarea id="categoryDescription" name="Description" rows="4" placeholder="Write a short description"></textarea>
             </div>
-            <button class="category-submit" type="submit">
+            <button id="addCategoryButton" class="category-submit" type="submit">
                 <i class="bi bi-plus-lg"></i> Add category
+            </button>
+            <button id="updateCategoryButton" class="category-submit" type="button" hidden>
+                <i class="bi bi-check-lg"></i> Update category
+            </button>
+            <button id="cancelEditButton" class="category-cancel" type="button" hidden>
+                Cancel
             </button>
         </form>
     </section>
@@ -101,7 +110,7 @@
                                     }
                                 </td>
                                 <td class="category-actions">
-                                    <button type="button" class="edit-button"
+                                    <button type="button" class="edit-button" data-category-id="@category.Id"
                                             aria-label="Edit @category.Name">
                                         <i class="bi bi-pencil"></i>
                                     </button>
@@ -126,3 +135,79 @@
         </div>
     </section>
 </div>
+@section Scripts {
+    <script>
+        const categoryForm = document.getElementById("categoryForm");
+        const getCategoryUrl = categoryForm.dataset.getUrl;
+        const formTitle = document.getElementById("categoryFormTitle");
+        const categoryId = document.getElementById("categoryId");
+        const categoryName = document.getElementById("categoryName");
+        const categoryDescription = document.getElementById("categoryDescription");
+        const addButton = document.getElementById("addCategoryButton");
+        const updateButton = document.getElementById("updateCategoryButton");
+        const cancelButton = document.getElementById("cancelEditButton");
+        const toastMessage = document.getElementById("toastMessage");
+
+        document.querySelectorAll(".edit-button").forEach(button => {
+            button.addEventListener("click", async () => {
+                const id = button.dataset.categoryId;
+
+                try {
+                    const response = await fetch(
+                        `${getCategoryUrl}?id=${encodeURIComponent(id)}`);
+
+                    if (!response.ok) {
+                        throw new Error("Category details load nahi hui.");
+                    }
+
+                    const category = await response.json();
+
+                    formTitle.textContent = "Edit category";
+                    categoryId.value = category.id;
+                    categoryName.value = category.name;
+                    categoryDescription.value = category.description ?? "";
+
+                    addButton.hidden = true;
+                    cancelButton.hidden = false;
+                    updateButton.hidden = false;
+                    categoryName.focus();
+                } catch (error) {
+                    alert(error.message);
+                }
+            });
+        });
+        updateButton.addEventListener("click", () => {
+            categoryForm.action = '@Url.Action("UpdateCategory", "Admin")';
+            categoryForm.requestSubmit();
+        });
+        cancelButton.addEventListener("click", () => {
+            categoryForm.reset();
+            categoryId.value = "";
+
+            categoryForm.action = '@Url.Action("CreateCategory", "Admin")';
+
+            addButton.hidden = false;
+            updateButton.hidden = true;
+            cancelButton.hidden = true;
+
+            formTitle.textContent = "Add category";
+        });
+        if (toastMessage) {
+            const toast = document.createElement("div");
+            const isSuccess = toastMessage.dataset.type === "success";
+
+            toast.className = `category-toast ${isSuccess ? "toast-success" : "toast-error"}`;
+            toast.innerHTML = `
+                <i class="bi ${isSuccess ? "bi-check-circle-fill" : "bi-exclamation-circle-fill"}"></i>
+                <span>${toastMessage.dataset.message}</span>
+                <button type="button" aria-label="Close">&times;</button>
+            `;
+
+            document.getElementById("toastContainer").appendChild(toast);
+
+            toast.querySelector("button").addEventListener("click", () => toast.remove());
+
+            window.setTimeout(() => toast.remove(), 4500);
+        }
+    </script>
+}

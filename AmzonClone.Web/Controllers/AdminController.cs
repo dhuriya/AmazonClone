@@ -61,6 +61,50 @@ namespace AmzonClone.Web.Controllers
 
             return RedirectToAction(nameof(Categories));
         }
+        [HttpGet]
+        public async Task<IActionResult> GetCategory(int id)
+        {
+            try
+            {
+                var response = await _apiClient.GetAsync<ApiResponse<CategoryAdminViewModel>>($"Category/{id}");
+                if(response?.Data == null)
+                {
+                    return NotFound();
+                }
+                return Json(response.Data);
+            }catch
+            {
+                return StatusCode(502, new { message = "Category is not found" });
+            }
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateCategory(int id,string name,string? description, bool isActive = true)
+        {
+            if(id <= 0 || string.IsNullOrWhiteSpace(name) || name.Trim().Length > 10)
+            {
+                TempData["CategoryError"] = "Category details check karke dobara try karein.";
+                return RedirectToAction(nameof(Categories));
+            }
+            try
+            {
+                var request = new UpdateCategoryRequest
+                {
+                    Id = id,
+                    Name = name,
+                    Description = description,
+                    IsActive = isActive
+                };
+                var result = await _apiClient.PutAsync<UpdateCategoryRequest, ApiResponse<CategoryAdminViewModel>>("Category", request);
+                TempData[result?.Success == true ? "CategorySuccess" : "CategoryError"] =
+                result?.Message ?? "Category update nahi ho saki.";
+            }
+            catch
+            {
+                TempData["CategoryError"] = "Category update nahi ho saki. API connection check karein.";
+            }
+            return RedirectToAction(nameof(Categories));
+        }
 
     }
 }
