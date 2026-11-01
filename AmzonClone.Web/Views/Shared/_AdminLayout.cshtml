@@ -24,7 +24,9 @@
                 <a class="active" asp-controller="Admin" asp-action="Index">
                     <i class="bi bi-grid"></i> Overview
                 </a>
-                <a href="#"><i class="bi bi-box-seam"></i> Products</a>
+                <a asp-controller="Admin" asp-action="Products">
+                    <i class="bi bi-box-seam"></i> Products
+                </a>
                 <a href="#"><i class="bi bi-receipt"></i> Orders</a>
                 <a href="#"><i class="bi bi-people"></i> Customers</a>
                 <a asp-controller="Admin" asp-action="Categories">

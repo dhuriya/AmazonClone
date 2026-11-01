@@ -42,6 +42,13 @@
                 <label for="categoryDescription">Description</label>
                 <textarea id="categoryDescription" name="Description" rows="4" placeholder="Write a short description"></textarea>
             </div>
+            <div class="category-field">
+                <label for="categoryIsActive">Status</label>
+                <select id="categoryIsActive" name="isActive">
+                    <option value="true">Active</option>
+                    <option value="false">Inactive</option>
+                </select>
+            </div>
             <button id="addCategoryButton" class="category-submit" type="submit">
                 <i class="bi bi-plus-lg"></i> Add category
             </button>
@@ -59,18 +66,24 @@
                 <h2>All categories</h2>
                 <p>Search, filter, edit, or remove categories.</p>
             </div>
-            <span class="category-count">3 categories</span>
+            <span class="category-count" id="categoryCount">
+                @Model.Count categories
+            </span>
         </div>
         <div class="category-filters">
             <label class="category-search">
                 <i class="bi bi-search"></i>
-                <input type="search" placeholder="Search categories..." />
+                <input id="categorySearch" type="search" placeholder="Search categories..." />
             </label>
-
-            <select aria-label="Filter by status">
-                <option value="">All statuses</option>
+            <select id="categoryStatusFilter" aria-label="Filter by status">
+                <option value="all">All statuses</option>
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
+            </select>
+            <select id="categorySort" aria-label="Sort categories">
+                <option value="name-asc">Sort: Name (A–Z)</option>
+                <option value="name-desc">Sort: Name (Z–A)</option>
+                <option value="newest">Sort: Newest</option>
             </select>
 
             <select aria-label="Sort categories">
@@ -93,7 +106,9 @@
                     {
                         foreach (var category in Model)
                         {
-                            <tr>
+                            <tr data-category-id="@category.Id" data-category-name="@category.Name.ToLowerInvariant()"
+                                data-category-description="@(category.Description?.ToLowerInvariant() ?? "")" 
+                                data-category-status="@(category.IsActive ? "active" : "inactive")">
                                 <td>
                                     <strong>@category.Name</strong>
                                     <small>ID: @category.Id</small>
@@ -109,15 +124,21 @@
                                         <span class="category-status inactive-status">Inactive</span>
                                     }
                                 </td>
-                                <td class="category-actions">
+                                <td class="category-actions" style="display:flex;">
                                     <button type="button" class="edit-button" data-category-id="@category.Id"
                                             aria-label="Edit @category.Name">
                                         <i class="bi bi-pencil"></i>
                                     </button>
-                                    <button type="button" class="delete-button"
-                                            aria-label="Delete @category.Name">
-                                        <i class="bi bi-trash3"></i>
-                                    </button>
+                                    <form asp-controller="Admin"
+                                          asp-action="DeleteCategory"
+                                          method="post"
+                                          class="delete-category-form">
+                                        <input type="hidden" name="id" value="@category.Id" />
+
+                                        <button type="submit" class="delete-button" aria-label="Delete @category.Name" data-category-name="@category.Name" title="Delete category">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                         }
@@ -132,6 +153,32 @@
                     }
                 </tbody>
             </table>
+            <div id="categoryNoResults" class="category-no-results" hidden>
+                <i class="bi bi-search"></i>
+                <strong>No categories match your filters</strong>
+                <span>Try a different search or filter.</span>
+            </div>
+        </div>
+        <div class="category-pagination">
+            <label>
+                Rows per page
+                <select id="categoryPageSize">
+                    <option value="5" selected>5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                </select>
+            </label>
+
+            <span id="categoryPageInfo"></span>
+
+            <div>
+                <button id="categoryPreviousPage" type="button" aria-label="Previous page">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <button id="categoryNextPage" type="button" aria-label="Next page">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
         </div>
     </section>
 </div>
@@ -143,6 +190,7 @@
         const categoryId = document.getElementById("categoryId");
         const categoryName = document.getElementById("categoryName");
         const categoryDescription = document.getElementById("categoryDescription");
+        const categoryIsActive = document.getElementById("categoryIsActive");
         const addButton = document.getElementById("addCategoryButton");
         const updateButton = document.getElementById("updateCategoryButton");
         const cancelButton = document.getElementById("cancelEditButton");
@@ -166,6 +214,7 @@
                     categoryId.value = category.id;
                     categoryName.value = category.name;
                     categoryDescription.value = category.description ?? "";
+                    categoryIsActive.value = String(category.isActive);
 
                     addButton.hidden = true;
                     cancelButton.hidden = false;
@@ -209,5 +258,134 @@
 
             window.setTimeout(() => toast.remove(), 4500);
         }
+        document.querySelectorAll(".delete-category-form").forEach(form => {
+            form.addEventListener("submit", event => {
+                const categoryName =
+                    form.dataset.categoryName || "this category";
+
+                const confirmed = window.confirm(
+                    `Delete "${categoryName}"? This action cannot be undone.`
+                );
+
+                if (!confirmed) {
+                    event.preventDefault();
+                }
+            });
+        });
+        const searchInput = document.getElementById("categorySearch");
+        const statusFilter = document.getElementById("categoryStatusFilter");
+        const sortSelect = document.getElementById("categorySort");
+        const categoryTable = document.querySelector(".category-table");
+        const categoryBody = categoryTable?.querySelector("tbody");
+        const noResults = document.getElementById("categoryNoResults");
+        const categoryCount = document.getElementById("categoryCount");
+        const pageSizeSelect = document.getElementById("categoryPageSize");
+        const pageInfo = document.getElementById("categoryPageInfo");
+        const previousPageButton = document.getElementById("categoryPreviousPage");
+        const nextPageButton = document.getElementById("categoryNextPage");
+
+        let currentPage = 1;
+
+        function filterAndSortCategories() {
+            if (!categoryBody) return;
+
+            const query = searchInput.value.trim().toLowerCase();
+            const selectedStatus = statusFilter.value;
+            const sortBy = sortSelect.value;
+            const pageSize = Number(pageSizeSelect.value);
+
+            const rows = Array.from(
+                categoryBody.querySelectorAll("tr[data-category-id]")
+            );
+
+            const matchingRows = rows.filter(row => {
+                const matchesText =
+                    row.dataset.categoryName.includes(query) ||
+                    row.dataset.categoryDescription.includes(query);
+
+                const matchesStatus =
+                    selectedStatus === "all" ||
+                    row.dataset.categoryStatus === selectedStatus;
+
+                return matchesText && matchesStatus;
+            });
+
+            matchingRows.sort((a, b) => {
+                if (sortBy === "name-asc") {
+                    return a.dataset.categoryName.localeCompare(b.dataset.categoryName);
+                }
+
+                if (sortBy === "name-desc") {
+                    return b.dataset.categoryName.localeCompare(a.dataset.categoryName);
+                }
+
+                if (sortBy === "newest") {
+                    return Number(b.dataset.categoryId) - Number(a.dataset.categoryId);
+                }
+
+                return 0;
+            });
+
+            const totalPages = Math.ceil(matchingRows.length / pageSize);
+            currentPage = Math.min(currentPage, Math.max(totalPages, 1));
+
+            const start = (currentPage - 1) * pageSize;
+            const visibleRows = new Set(matchingRows.slice(start, start + pageSize));
+
+            rows.forEach(row => {
+                row.hidden = !visibleRows.has(row);
+            });
+
+            matchingRows.forEach(row => categoryBody.appendChild(row));
+
+            noResults.hidden = matchingRows.length > 0;
+            categoryCount.textContent = `${matchingRows.length} ${
+                matchingRows.length === 1 ? "category" : "categories"
+            }`;
+
+            pageInfo.textContent = matchingRows.length === 0
+                ? "Showing 0 categories"
+                : `Showing ${start + 1}–${Math.min(start + pageSize, matchingRows.length)} of ${matchingRows.length}`;
+
+            previousPageButton.disabled = currentPage <= 1;
+            nextPageButton.disabled = currentPage >= totalPages;
+        }
+
+        searchInput.addEventListener("input", () => {
+            currentPage = 1;
+            filterAndSortCategories();
+        });
+
+        statusFilter.addEventListener("change", () => {
+            currentPage = 1;
+            filterAndSortCategories();
+        });
+
+        sortSelect.addEventListener("change", () => {
+            currentPage = 1;
+            filterAndSortCategories();
+        });
+
+        pageSizeSelect.addEventListener("change", () => {
+            currentPage = 1;
+            filterAndSortCategories();
+        });
+
+        previousPageButton.addEventListener("click", () => {
+            if (currentPage > 1) {
+                currentPage--;
+                filterAndSortCategories();
+            }
+        });
+
+        nextPageButton.addEventListener("click", () => {
+            currentPage++;
+            filterAndSortCategories();
+        });
+
+        filterAndSortCategories();
+        searchInput.addEventListener("input", filterAndSortCategories);
+        statusFilter.addEventListener("change", filterAndSortCategories);
+        sortSelect.addEventListener("change", filterAndSortCategories);
     </script>
 }

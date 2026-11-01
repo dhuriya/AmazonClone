@@ -1,0 +1,43 @@
+﻿@model AmzonClone.Web.Models.Admin.AdminLoginViewModel
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Admin Login";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Login - AmazonClone</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body>
+    <main class="admin-login-page">
+        <form asp-action="Login" method="post" class="admin-login-card">
+            @Html.AntiForgeryToken()
+
+            <div class="admin-login-icon"><i class="bi bi-bag-check-fill"></i></div>
+            <span class="dashboard-eyebrow">ADMIN CONSOLE</span>
+            <h1>Welcome back</h1>
+            <p>Sign in with your administrator account.</p>
+
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <label asp-for="Email">Email</label>
+            <input asp-for="Email" type="email" autocomplete="username" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+
+            <label asp-for="Password">Password</label>
+            <input asp-for="Password" type="password" autocomplete="current-password" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+
+            <button type="submit">Sign in <i class="bi bi-arrow-right"></i></button>
+        </form>
+    </main>
+</body>
+</html>

@@ -14,5 +14,6 @@ namespace AmazonClone.Application.Features.Auth
         public string? EmailVerification { get; set; }
         public string? UserId { get; set; }
         public string? RefreshToken { get; set; }
+        public List<string> Roles { get; set; } = new();
     }
 }

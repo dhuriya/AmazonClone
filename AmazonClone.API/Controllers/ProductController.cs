@@ -39,7 +39,7 @@ namespace AmazonClone.API.Controllers
             });
         }
         [HttpPost]
-        //[Authorize(Roles = Roles.Admin)]
+        [Authorize(Roles = Roles.Admin)]
         [SwaggerOperation(
             Summary ="Create a new product",
             Description = "Creates a new product. Only Admin users are allowed")]
@@ -120,7 +120,7 @@ namespace AmazonClone.API.Controllers
         [SwaggerResponse(StatusCodes.Status404NotFound)]
         [SwaggerResponse(StatusCodes.Status401Unauthorized)]
         [SwaggerResponse(StatusCodes.Status403Forbidden)]
-        //[Authorize(Roles = Roles.Admin)]
+        [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Update([FromForm] UpdateProductRequest request)
         {
             var existingProduct = await _productService.GetByIdAsync(request.Id);

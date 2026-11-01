@@ -16,6 +16,65 @@ namespace AmzonClone.Web.Controllers
         {
             return View();
         }
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View(new AdminLoginViewModel());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(AdminLoginViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            try
+            {
+                var response =
+                    await _apiClient.PostAsync<AdminLoginRequest, ApiResponse<AdminLoginResponse>>(
+                        "Auth/login",
+                        new AdminLoginRequest
+                        {
+                            Email = model.Email,
+                            Password = model.Password
+                        });
+
+                var login = response?.Data;
+
+                if (login?.IsSuccess != true || string.IsNullOrWhiteSpace(login.Token))
+                {
+                    ModelState.AddModelError(string.Empty, login?.Message ?? "Login failed.");
+                    return View(model);
+                }
+
+                if (!login.Roles.Contains("Admin", StringComparer.OrdinalIgnoreCase))
+                {
+                    ModelState.AddModelError(string.Empty, "This account does not have admin access.");
+                    return View(model);
+                }
+
+                HttpContext.Session.SetString("AdminAccessToken", login.Token);
+
+                if (!string.IsNullOrWhiteSpace(login.RefreshToken))
+                    HttpContext.Session.SetString("AdminRefreshToken", login.RefreshToken);
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch
+            {
+                ModelState.AddModelError(string.Empty, "Could not reach the login service.");
+                return View(model);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction(nameof(Login));
+        }
         public async Task<IActionResult> Categories()
         {
             try
@@ -104,6 +163,41 @@ namespace AmzonClone.Web.Controllers
                 TempData["CategoryError"] = "Category update nahi ho saki. API connection check karein.";
             }
             return RedirectToAction(nameof(Categories));
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteCategory(int id)
+        {
+            if(id<0)
+            {
+                TempData["CategoryError"] = "Invalid Category";
+                return RedirectToAction(nameof(Categories));
+            }
+            try
+            {
+                var deleted = await _apiClient.DeleteAsync($"Category/{id}");
+                TempData[deleted ? "CategorySuccess" : "CategoryError"] = deleted ? "Category deleted Successfully" : "Could not delete the category";
+            }
+            catch
+            {
+                TempData["CategoryError"] ="Could not delete the category. Please check the API connection.";
+            }
+            return RedirectToAction(nameof(Categories));
+        }
+        public async Task<IActionResult> Products()
+        {
+            try
+            {
+                var response = await _apiClient.GetAsync<ApiResponse<List<ProductAdminViewModel>>>("Product");
+                return View(response?.Data ?? new List<ProductAdminViewModel>());
+            }
+            catch
+            {
+                ViewBag.ProductApiError =
+                "Could not load products. Please check the API connection.";
+
+                return View(new List<ProductAdminViewModel>());
+            }
         }
 
     }

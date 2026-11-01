@@ -11,6 +11,16 @@ namespace AmzonClone.Web
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.AddDistributedMemoryCache();
+
+            builder.Services.AddSession(options =>
+            {
+                options.Cookie.Name = ".AmazonClone.Admin";
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                options.IdleTimeout = TimeSpan.FromMinutes(30);
+            });
             builder.Services.AddHttpClient("AmazonApi", client =>
             {
                 client.BaseAddress =new Uri(
@@ -33,7 +43,7 @@ namespace AmzonClone.Web
             app.UseStaticFiles();
 
             app.UseRouting();
-
+            app.UseSession();
             app.UseAuthorization();
 
             app.MapControllerRoute(

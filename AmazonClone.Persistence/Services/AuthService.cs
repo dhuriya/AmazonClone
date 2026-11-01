@@ -132,7 +132,8 @@ namespace AmazonClone.Persistence.Services
                 IsSuccess = tokenResponse.IsSuccess,
                 Message = "Login successful.",
                 Token = tokenResponse.Token,
-                RefreshToken = tokenResponse.RefreshToken
+                RefreshToken = tokenResponse.RefreshToken,
+                Roles = roles.ToList()
             };
         }
         public async Task<string> ForgotPasswordAsync(ForgotPasswordDto dto)

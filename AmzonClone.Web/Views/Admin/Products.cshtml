@@ -1,0 +1,250 @@
+﻿@model List<AmzonClone.Web.Models.Admin.ProductAdminViewModel>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Products";
+}
+
+<section class="dashboard-header">
+    <div>
+        <span class="dashboard-eyebrow">CATALOG MANAGEMENT</span>
+        <h1>Products</h1>
+        <p>Manage your store catalog, prices, and inventory.</p>
+    </div>
+</section>
+
+<section class="dashboard-panel">
+    <div class="panel-heading">
+        <div>
+            <h2>All products</h2>
+            <p>Products loaded from the Product API</p>
+        </div>
+        <span class="category-count">@Model.Count products</span>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(ViewBag.ProductApiError))
+    {
+        <div class="alert alert-danger mt-3">@ViewBag.ProductApiError</div>
+    }
+    <div class="category-filters product-filters">
+        <label class="category-search">
+            <i class="bi bi-search"></i>
+            <input id="productSearch" type="search" placeholder="Search products..." />
+        </label>
+
+        <select id="productStatus" aria-label="Filter by status">
+            <option value="all">All statuses</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+        </select>
+
+        <select id="productSort" aria-label="Sort products">
+            <option value="name-asc">Name: A–Z</option>
+            <option value="name-desc">Name: Z–A</option>
+            <option value="price-low">Price: Low to high</option>
+            <option value="price-high">Price: High to low</option>
+            <option value="stock-low">Stock: Low to high</option>
+        </select>
+    </div>
+    <div class="table-responsive mt-3">
+        <table class="category-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Count > 0)
+                {
+                    foreach (var product in Model)
+                    {
+                        <tr data-product-id="@product.Id"
+                            data-product-name="@product.Name.ToLowerInvariant()"
+                            data-product-category="@((product.CategoryName ?? string.Empty).ToLowerInvariant())"
+                            data-product-status="@(product.IsActive ? "active" : "inactive")"
+                            data-product-price="@product.Price"
+                            data-product-stock="@product.Stock">
+                            <td>
+                                <strong>@product.Name</strong>
+                                <small>ID: @product.Id</small>
+                            </td>
+                            <td>
+                                @(string.IsNullOrWhiteSpace(product.CategoryName)
+                                    ? "Uncategorized"
+                                    : product.CategoryName)
+                            </td>
+                            <td>₹@product.Price.ToString("N2")</td>
+                            <td>@product.Stock</td>
+                            <td>
+                                @if (product.IsActive)
+                                {
+                                    <span class="category-status active-status">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="category-status inactive-status">Inactive</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="text-center py-4">
+                            No products found.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tr id="productNoResults" hidden>
+                <td colspan="5" class="text-center py-4">
+                    No products match your filters.
+                </td>
+            </tr>
+        </table>
+        <div class="category-pagination">
+            <label>
+                Rows per page
+                <select id="productPageSize">
+                    <option value="5">5</option>
+                    <option value="10" selected>10</option>
+                    <option value="20">20</option>
+                </select>
+            </label>
+
+            <span id="productPageInfo"></span>
+
+            <div>
+                <button id="productPreviousPage" type="button" aria-label="Previous page">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <button id="productNextPage" type="button" aria-label="Next page">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+@section Scripts {
+    <script>
+        const productSearch = document.getElementById("productSearch");
+        const productStatus = document.getElementById("productStatus");
+        const productSort = document.getElementById("productSort");
+        const productBody = document.querySelector(".category-table tbody");
+        const productNoResults = document.getElementById("productNoResults");
+        const productCount = document.querySelector(".category-count");
+                const productPageSize = document.getElementById("productPageSize");
+        const productPageInfo = document.getElementById("productPageInfo");
+        const productPreviousPage = document.getElementById("productPreviousPage");
+        const productNextPage = document.getElementById("productNextPage");
+
+        let currentProductPage = 1;
+
+        function filterProducts() {
+            const query = productSearch.value.trim().toLowerCase();
+            const status = productStatus.value;
+            const pageSize = Number(productPageSize.value);
+
+            const rows = Array.from(
+                productBody.querySelectorAll("tr[data-product-id]")
+            );
+
+            const matchingRows = rows.filter(row => {
+                const matchesText =
+                    row.dataset.productName.includes(query) ||
+                    row.dataset.productCategory.includes(query);
+
+                const matchesStatus =
+                    status === "all" || row.dataset.productStatus === status;
+
+                return matchesText && matchesStatus;
+            });
+
+            matchingRows.sort((a, b) => {
+                switch (productSort.value) {
+                    case "name-desc":
+                        return b.dataset.productName.localeCompare(a.dataset.productName);
+                    case "price-low":
+                        return Number(a.dataset.productPrice) - Number(b.dataset.productPrice);
+                    case "price-high":
+                        return Number(b.dataset.productPrice) - Number(a.dataset.productPrice);
+                    case "stock-low":
+                        return Number(a.dataset.productStock) - Number(b.dataset.productStock);
+                    default:
+                        return a.dataset.productName.localeCompare(b.dataset.productName);
+                }
+            });
+
+            const totalPages = Math.ceil(matchingRows.length / pageSize);
+            currentProductPage = Math.min(
+                currentProductPage,
+                Math.max(totalPages, 1)
+            );
+
+            const start = (currentProductPage - 1) * pageSize;
+            const visibleRows = new Set(
+                matchingRows.slice(start, start + pageSize)
+            );
+
+            rows.forEach(row => {
+                row.hidden = !visibleRows.has(row);
+            });
+
+            matchingRows.forEach(row => productBody.appendChild(row));
+
+            productNoResults.hidden = matchingRows.length > 0;
+            productCount.textContent =
+                `${matchingRows.length} ${matchingRows.length === 1 ? "product" : "products"}`;
+
+            productPageInfo.textContent = matchingRows.length === 0
+                ? "Showing 0 products"
+                : `Showing ${start + 1}–${Math.min(start + pageSize, matchingRows.length)} of ${matchingRows.length}`;
+
+            productPreviousPage.disabled = currentProductPage <= 1;
+            productNextPage.disabled = currentProductPage >= totalPages;
+        }
+
+        productSearch.addEventListener("input", () => {
+            currentProductPage = 1;
+            filterProducts();
+        });
+
+        productStatus.addEventListener("change", () => {
+            currentProductPage = 1;
+            filterProducts();
+        });
+
+        productSort.addEventListener("change", () => {
+            currentProductPage = 1;
+            filterProducts();
+        });
+
+        productPageSize.addEventListener("change", () => {
+            currentProductPage = 1;
+            filterProducts();
+        });
+
+        productPreviousPage.addEventListener("click", () => {
+            if (currentProductPage > 1) {
+                currentProductPage--;
+                filterProducts();
+            }
+        });
+
+        productNextPage.addEventListener("click", () => {
+            currentProductPage++;
+            filterProducts();
+        });
+
+        filterProducts();
+
+        productSearch.addEventListener("input", filterProducts);
+        productStatus.addEventListener("change", filterProducts);
+        productSort.addEventListener("change", filterProducts);
+    </script>
+}

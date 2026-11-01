@@ -1,6 +1,8 @@
 ﻿using AmazonClone.Application.Common;
 using AmazonClone.Application.Features.Categories.DTOs;
 using AmazonClone.Application.Features.Categories.Interfaces;
+using AmazonClone.Shared.Constants;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -42,6 +44,7 @@ namespace AmazonClone.API.Controllers
         // This is for create new category action method
         //----------------------------------------------------------
         [HttpPost]
+        [Authorize(Roles = Roles.Admin)]
         [SwaggerOperation(
             Summary = "Create a new category",
             Description = "Creates a new category. Only Admin users are allowed."
@@ -101,6 +104,7 @@ namespace AmazonClone.API.Controllers
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized.")]
         [SwaggerResponse(StatusCodes.Status403Forbidden, "Forbidden.")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Category not found.")]
+        [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Update(UpdateCategoryDto dto)
         {
             var category = await _categoryService.UpdateAsync(dto);
@@ -123,6 +127,7 @@ namespace AmazonClone.API.Controllers
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized.")]
         [SwaggerResponse(StatusCodes.Status403Forbidden, "Forbidden.")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Category not found.")]
+        [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Delete(int id)
         {
             var result = await _categoryService.DeleteAsync(id);
