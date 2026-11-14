@@ -132,10 +132,10 @@
                                     <form asp-controller="Admin"
                                           asp-action="DeleteCategory"
                                           method="post"
-                                          class="delete-category-form">
+                                          class="delete-category-form" data-category-name="@category.Name" >
                                         <input type="hidden" name="id" value="@category.Id" />
 
-                                        <button type="submit" class="delete-button" aria-label="Delete @category.Name" data-category-name="@category.Name" title="Delete category">
+                                        <button type="submit" class="delete-button" aria-label="Delete @category.Name" title="Delete category">
                                             <i class="bi bi-trash3"></i>
                                         </button>
                                     </form>

@@ -37,7 +37,8 @@ namespace AmazonClone.Persistence.Services
                     ImageUrl = p.ImageUrl,
                     IsFeatured = p.IsFeatured,
                     IsActive = p.IsActive,
-                    CategoryId = p.CategoryId
+                    CategoryId = p.CategoryId,
+                    CategoryName = p.Category.Name
                 }).ToListAsync();
         }
         //----------------------

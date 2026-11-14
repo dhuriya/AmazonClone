@@ -1,3 +1,4 @@
+using AmzonClone.Web.Filters;
 using AmzonClone.Web.Services;
 using AmzonClone.Web.Services.Interfaces;
 
@@ -10,7 +11,10 @@ namespace AmzonClone.Web
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-            builder.Services.AddControllersWithViews();
+            builder.Services.AddControllersWithViews(options =>
+            options.Filters.AddService<AdminSessionFilter>());
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddScoped<AdminSessionFilter>();
             builder.Services.AddDistributedMemoryCache();
 
             builder.Services.AddSession(options =>

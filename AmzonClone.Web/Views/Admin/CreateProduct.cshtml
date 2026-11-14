@@ -1,0 +1,79 @@
+﻿@model AmzonClone.Web.Models.Admin.ProductCreateViewModel
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Add Product";
+}
+<section class="dashboard-header">
+    <div>
+        <span class="dashboard-eyebrow">CATALOG MANAGEMENT</span>
+        <h1>Add product</h1>
+        <p>Add an item to your store catalog.</p>
+    </div>
+    <a asp-action="Products" class="product-back-link">
+        <i class="bi bi-arrow-left"></i> Back to products
+    </a>
+</section>
+<section class="dashboard-panel product-form-panel">
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <form asp-action="CreateProduct" method="post" enctype="multipart/form-data">
+        <div class="product-form-grid">
+            <div class="category-field">
+                <label asp-for="Name">Product name</label>
+                <input asp-for="Name" placeholder="e.g. Wireless headphones" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="category-field">
+                <label asp-for="CategoryId">Category</label>
+                <select asp-for="CategoryId">
+                    <option value="0">Select a category</option>
+                    @foreach (var category in Model.Categories)
+                    {
+                        <option value="@category.Id">@category.Name</option>
+                    }
+                </select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+            <div class="category-field">
+                <label asp-for="Price">Price (₹)</label>
+                <input asp-for="Price" type="number" min="0.01" step="0.01" />
+                <span asp-validation-for="Price" class="text-danger"></span>
+            </div>
+            <div class="category-field">
+                <label asp-for="Stock">Stock quantity</label>
+                <input asp-for="Stock" type="number" min="0" step="1" />
+                <span asp-validation-for="Stock" class="text-danger"></span>
+            </div>
+            <div class="category-field product-description-field">
+                <label asp-for="Description">Description</label>
+                <textarea asp-for="Description" rows="5"
+                          placeholder="Describe the product"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="category-field">
+                <label asp-for="Image">Product image</label>
+                <input asp-for="Image" type="file"
+                       accept=".jpg,.jpeg,.png,.webp" />
+                <small class="product-help">JPG, PNG or WEBP · Maximum 2 MB</small>
+                <span asp-validation-for="Image" class="text-danger"></span>
+            </div>
+            <label class="featured-option">
+                <input asp-for="IsFeatured" />
+                <span>
+                    <strong>Featured product</strong>
+                    <small>Highlight this item in the storefront.</small>
+                </span>
+            </label>
+        </div>
+        <div class="product-form-actions">
+            <a asp-action="Products" class="product-cancel-link">Cancel</a>
+            <button type="submit" class="category-submit">
+                <i class="bi bi-plus-lg"></i> Create product
+            </button>
+        </div>
+    </form>
+</section>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

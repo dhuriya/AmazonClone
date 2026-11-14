@@ -2,15 +2,19 @@
 using AmzonClone.Web.Models.Admin;
 using AmzonClone.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
+using System.Net.Http.Headers;
 
 namespace AmzonClone.Web.Controllers
 {
     public class AdminController : Controller
     {
         private readonly IApiClient _apiClient;
-        public AdminController(IApiClient apiClient)
+        private readonly IConfiguration _configuration;
+        public AdminController(IApiClient apiClient, IConfiguration configuration)
         {
             _apiClient = apiClient;
+            _configuration = configuration;
         }
         public IActionResult Index()
         {
@@ -188,6 +192,8 @@ namespace AmzonClone.Web.Controllers
         {
             try
             {
+                var apiBaseUrl = new Uri(_configuration["ApiSettings:BaseUrl"]!);
+                ViewBag.ApiRoot = $"{apiBaseUrl.Scheme}://{apiBaseUrl.Authority}";
                 var response = await _apiClient.GetAsync<ApiResponse<List<ProductAdminViewModel>>>("Product");
                 return View(response?.Data ?? new List<ProductAdminViewModel>());
             }
@@ -199,6 +205,173 @@ namespace AmzonClone.Web.Controllers
                 return View(new List<ProductAdminViewModel>());
             }
         }
+        [HttpGet]
+        public async Task<IActionResult> CreateProduct()
+        {
+            var model = new ProductCreateViewModel();
+            await LoadCategoriesAsync(model);
+            return View(model);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateProduct(ProductCreateViewModel model)
+        {
+            if (model.Image is not null && model.Image.Length > 2 * 1024 * 1024)
+            {
+                ModelState.AddModelError(nameof(model.Image),"Image size must not exceed 2 MB.");
+            }
+            if (!ModelState.IsValid)
+            {
+                await LoadCategoriesAsync(model);
+                return View(model);
+            }
+            try
+            {
+                using var content = new MultipartFormDataContent();
+                content.Add(new StringContent(model.Name.Trim()), "Name");
+                content.Add(new StringContent(model.Description.Trim()), "Description");
+                content.Add(new StringContent(model.Price.ToString(CultureInfo.InvariantCulture)), "Price");
+                content.Add(new StringContent(model.Stock.ToString(CultureInfo.InvariantCulture)), "Stock");
+                content.Add(new StringContent(model.CategoryId.ToString(CultureInfo.InvariantCulture)), "CategoryId");
+                content.Add(new StringContent(model.IsFeatured.ToString()), "IsFeatured");
+                if (model.Image is { Length: > 0 })
+                {
+                    var imageContent = new StreamContent(model.Image.OpenReadStream());
+                    if (MediaTypeHeaderValue.TryParse(model.Image.ContentType, out var contentType))
+                    {
+                        imageContent.Headers.ContentType = contentType;
+                    }
+                    content.Add(imageContent,"Image",Path.GetFileName(model.Image.FileName));
+                }
+                var result = await _apiClient.PostMultipartAsync<ApiResponse<ProductAdminViewModel>>("Product", content);
+                if (result?.Success == true)
+                {
+                    TempData["ProductSuccess"] = "Product created successfully.";
+                    return RedirectToAction(nameof(Products));
+                }
 
+                ModelState.AddModelError(string.Empty,result?.Message ?? "Could not create the product.");
+            }
+            catch
+            {
+                ModelState.AddModelError(string.Empty,"Could not create the product. Check the API connection and image format.");
+            }
+            await LoadCategoriesAsync(model);
+            return View(model);
+        }
+        private async Task LoadCategoriesAsync(ProductCreateViewModel model)
+        {
+            var response = await _apiClient.GetAsync<ApiResponse<List<CategoryAdminViewModel>>>("Category");
+            model.Categories = response?.Data ?? new List<CategoryAdminViewModel>();
+        }
+        [HttpGet]
+        public async Task<IActionResult> EditProduct(int id)
+        {
+            var response =
+                await _apiClient.GetAsync<ApiResponse<ProductAdminViewModel>>(
+                    $"Product/{id}");
+
+            if (response?.Data is null)
+                return NotFound();
+
+            var product = response.Data;
+
+            var model = new ProductCreateViewModel
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Description = product.Description,
+                Price = product.Price,
+                Stock = product.Stock,
+                CategoryId = product.CategoryId,
+                IsFeatured = product.IsFeatured,
+                IsActive = product.IsActive,
+                ExistingImageUrl = product.ImageUrl
+            };
+
+            await LoadCategoriesAsync(model);
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditProduct(ProductCreateViewModel model)
+        {
+            if (model.Id <= 0)
+                return NotFound();
+            if (model.Image is not null && model.Image.Length > 2 * 1024 * 1024)
+            {
+                ModelState.AddModelError(nameof(model.Image), "Image size must not exceed 2 MB.");
+            }
+            if (!ModelState.IsValid)
+            {
+                await LoadCategoriesAsync(model);
+                return View(model);
+            }
+            try
+            {
+                using var content = new MultipartFormDataContent();
+                content.Add(new StringContent(model.Id.ToString()), "Id");
+                content.Add(new StringContent(model.Name.Trim()), "Name");
+                content.Add(new StringContent(model.Description.Trim()), "Description");
+                content.Add(new StringContent(model.Price.ToString(CultureInfo.InvariantCulture)), "Price");
+                content.Add(new StringContent(model.Stock.ToString(CultureInfo.InvariantCulture)), "Stock");
+                content.Add(new StringContent(model.CategoryId.ToString(CultureInfo.InvariantCulture)), "CategoryId");
+                content.Add(new StringContent(model.IsFeatured.ToString()), "IsFeatured");
+                content.Add(new StringContent(model.IsActive.ToString()), "IsActive");
+
+                if (model.Image is { Length: > 0 })
+                {
+                    var imageContent = new StreamContent(model.Image.OpenReadStream());
+                    if (MediaTypeHeaderValue.TryParse(model.Image.ContentType, out var contentType))
+                    {
+                        imageContent.Headers.ContentType = contentType;
+                    }
+                    content.Add(imageContent, "Image", Path.GetFileName(model.Image.FileName));
+                }
+                var result = await _apiClient.PutMultipartAsync<ApiResponse<ProductAdminViewModel>>("Product", content);
+                if (result?.Success == true)
+                {
+                    TempData["ProductSuccess"] = "Product updated successfully.";
+                    return RedirectToAction(nameof(Products));
+                }
+                ModelState.AddModelError(string.Empty, result?.Message ?? "Could not update the product.");
+            }
+            catch
+            {
+                ModelState.AddModelError(
+                    string.Empty, "Could not update the product. Please try again.");
+            }
+
+            await LoadCategoriesAsync(model);
+            return View(model);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteProduct(int id)
+        {
+            if (id <= 0)
+            {
+                TempData["ProductError"] = "Invalid product.";
+                return RedirectToAction(nameof(Products));
+            }
+
+            try
+            {
+                var deleted = await _apiClient.DeleteAsync($"Product/{id}");
+
+                TempData[deleted ? "ProductSuccess" : "ProductError"] =
+                    deleted
+                        ? "Product deleted successfully."
+                        : "Could not delete the product. Check your admin access.";
+            }
+            catch
+            {
+                TempData["ProductError"] =
+                    "Could not delete the product. Please check the API connection.";
+            }
+
+            return RedirectToAction(nameof(Products));
+        }
     }
 }
