@@ -70,9 +70,25 @@
 
             <div class="category-field">
                 <label asp-for="Image">Replace product image</label>
+                <div class="product-image-preview-wrap">
+                    @if (!string.IsNullOrWhiteSpace(Model.ExistingImageUrl))
+                    {
+                        <img class="product-image-preview"
+                             src="@Url.Action("ProductImage", "Home", new { fileName = Model.ExistingImageUrl.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries).LastOrDefault() })"
+                             data-existing-src="@Url.Action("ProductImage", "Home", new { fileName = Model.ExistingImageUrl.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries).LastOrDefault() })"
+                             alt="Current product image"
+                             onerror="this.hidden=true; this.nextElementSibling.hidden=false;" />
+                        <span class="product-image-preview-empty" hidden><i class="bi bi-image"></i> Image unavailable</span>
+                    }
+                    else
+                    {
+                        <img class="product-image-preview" alt="Selected product preview" hidden />
+                        <span class="product-image-preview-empty"><i class="bi bi-image"></i> No image uploaded</span>
+                    }
+                </div>
                 <input asp-for="Image"
                        type="file"
-                       accept=".jpg,.jpeg,.png,.webp" />
+                       accept=".jpg,.jpeg,.png,.webp" class="product-image-input" />
                 <small class="product-help">
                     Leave empty to keep the current image. JPG, PNG or WEBP · Maximum 2 MB
                 </small>

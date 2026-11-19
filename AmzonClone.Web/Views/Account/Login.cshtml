@@ -1,0 +1,39 @@
+﻿@model AmzonClone.Web.Models.Account.CustomerLoginViewModel
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Sign in";
+}
+
+<section class="account-auth-page">
+    <form asp-action="Login" method="post" class="account-auth-card">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+        @if (TempData["RegistrationNotice"] is string notice)
+        {
+            <div class="alert alert-info">@notice</div>
+        }
+        <span class="dashboard-eyebrow">WELCOME BACK</span>
+        <h1>Sign in to ShopKart</h1>
+        <p>Use your customer account to continue shopping.</p>
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+        <label asp-for="Email">Email address</label>
+        <input asp-for="Email" type="email" autocomplete="username" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+        <label asp-for="Password">Password</label>
+        <input asp-for="Password"
+               type="password"
+               autocomplete="current-password" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+
+        <button type="submit">Sign in</button>
+    </form>
+    <div class="account-auth-footer">
+        New to ShopKart?
+        <a asp-action="Register">Create an account</a>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

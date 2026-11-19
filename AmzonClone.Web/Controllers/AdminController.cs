@@ -10,11 +10,9 @@ namespace AmzonClone.Web.Controllers
     public class AdminController : Controller
     {
         private readonly IApiClient _apiClient;
-        private readonly IConfiguration _configuration;
-        public AdminController(IApiClient apiClient, IConfiguration configuration)
+        public AdminController(IApiClient apiClient)
         {
             _apiClient = apiClient;
-            _configuration = configuration;
         }
         public IActionResult Index()
         {
@@ -76,7 +74,8 @@ namespace AmzonClone.Web.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Logout()
         {
-            HttpContext.Session.Clear();
+            HttpContext.Session.Remove("AdminAccessToken");
+            HttpContext.Session.Remove("AdminRefreshToken");
             return RedirectToAction(nameof(Login));
         }
         public async Task<IActionResult> Categories()
@@ -98,7 +97,7 @@ namespace AmzonClone.Web.Controllers
         {
             if (string.IsNullOrWhiteSpace(name) || name.Trim().Length > 100)
             {
-                TempData["CategoryError"] = "Category name required hai aur 100 characters se chhota hona chahiye.";
+                TempData["CategoryError"] = "Enter a category name with no more than 100 characters.";
                 return RedirectToAction(nameof(Categories));
             }
             try
@@ -114,12 +113,12 @@ namespace AmzonClone.Web.Controllers
                         "Category", request);
 
                 TempData[result?.Success == true ? "CategorySuccess" : "CategoryError"] =
-                    result?.Message ?? "Category create nahi ho saki.";
+                    result?.Message ?? "Could not create the category.";
             }
             catch
             {
                 TempData["CategoryError"] =
-                    "Category create nahi ho saki. API connection check karein.";
+                    "Could not create the category. Please check the API connection.";
             }
 
             return RedirectToAction(nameof(Categories));
@@ -137,16 +136,16 @@ namespace AmzonClone.Web.Controllers
                 return Json(response.Data);
             }catch
             {
-                return StatusCode(502, new { message = "Category is not found" });
+                return StatusCode(502, new { message = "Could not load the category details." });
             }
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateCategory(int id,string name,string? description, bool isActive = true)
         {
-            if(id <= 0 || string.IsNullOrWhiteSpace(name) || name.Trim().Length > 10)
+            if(id <= 0 || string.IsNullOrWhiteSpace(name) || name.Trim().Length > 100)
             {
-                TempData["CategoryError"] = "Category details check karke dobara try karein.";
+                TempData["CategoryError"] = "Enter valid category details and try again.";
                 return RedirectToAction(nameof(Categories));
             }
             try
@@ -154,17 +153,17 @@ namespace AmzonClone.Web.Controllers
                 var request = new UpdateCategoryRequest
                 {
                     Id = id,
-                    Name = name,
+                    Name = name.Trim(),
                     Description = description,
                     IsActive = isActive
                 };
                 var result = await _apiClient.PutAsync<UpdateCategoryRequest, ApiResponse<CategoryAdminViewModel>>("Category", request);
                 TempData[result?.Success == true ? "CategorySuccess" : "CategoryError"] =
-                result?.Message ?? "Category update nahi ho saki.";
+                result?.Message ?? "Could not update the category.";
             }
             catch
             {
-                TempData["CategoryError"] = "Category update nahi ho saki. API connection check karein.";
+                TempData["CategoryError"] = "Could not update the category. Please check the API connection.";
             }
             return RedirectToAction(nameof(Categories));
         }
@@ -172,19 +171,19 @@ namespace AmzonClone.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteCategory(int id)
         {
-            if(id<0)
+            if(id<=0)
             {
-                TempData["CategoryError"] = "Invalid Category";
+                TempData["CategoryError"] = "Invalid category.";
                 return RedirectToAction(nameof(Categories));
             }
             try
             {
                 var deleted = await _apiClient.DeleteAsync($"Category/{id}");
-                TempData[deleted ? "CategorySuccess" : "CategoryError"] = deleted ? "Category deleted Successfully" : "Could not delete the category";
+                TempData[deleted ? "CategorySuccess" : "CategoryError"] = deleted ? "Category deleted successfully." : "Could not delete the category.";
             }
             catch
             {
-                TempData["CategoryError"] ="Could not delete the category. Please check the API connection.";
+                TempData["CategoryError"] = "Could not delete the category. Please check the API connection.";
             }
             return RedirectToAction(nameof(Categories));
         }
@@ -192,8 +191,6 @@ namespace AmzonClone.Web.Controllers
         {
             try
             {
-                var apiBaseUrl = new Uri(_configuration["ApiSettings:BaseUrl"]!);
-                ViewBag.ApiRoot = $"{apiBaseUrl.Scheme}://{apiBaseUrl.Authority}";
                 var response = await _apiClient.GetAsync<ApiResponse<List<ProductAdminViewModel>>>("Product");
                 return View(response?.Data ?? new List<ProductAdminViewModel>());
             }
@@ -355,13 +352,10 @@ namespace AmzonClone.Web.Controllers
                 TempData["ProductError"] = "Invalid product.";
                 return RedirectToAction(nameof(Products));
             }
-
             try
             {
                 var deleted = await _apiClient.DeleteAsync($"Product/{id}");
-
-                TempData[deleted ? "ProductSuccess" : "ProductError"] =
-                    deleted
+                TempData[deleted ? "ProductSuccess" : "ProductError"] = deleted
                         ? "Product deleted successfully."
                         : "Could not delete the product. Check your admin access.";
             }
@@ -370,8 +364,20 @@ namespace AmzonClone.Web.Controllers
                 TempData["ProductError"] =
                     "Could not delete the product. Please check the API connection.";
             }
-
             return RedirectToAction(nameof(Products));
+        }
+        public async Task<IActionResult> Orders()
+        {
+            try
+            {
+                var response = await _apiClient.GetAsync<ApiResponse<List<OrderAdminViewModel>>>("Order/admin");
+                return View(response?.Data ?? new List<OrderAdminViewModel>());
+            }
+            catch
+            {
+                ViewBag.OrderApiError = "Could not load orders. Please check your admin login and API connection.";
+                return View(new List<OrderAdminViewModel>());
+            }
         }
     }
 }

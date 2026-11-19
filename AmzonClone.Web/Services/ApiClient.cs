@@ -18,7 +18,12 @@ namespace AmzonClone.Web.Services
             {
                 Content = content
             };
-            var token = _httpContextAccessor.HttpContext?.Session.GetString("AdminAccessToken");
+            var httpContext = _httpContextAccessor.HttpContext;
+            var controller = httpContext?.Request.RouteValues["controller"]?.ToString();
+            var tokenKey = string.Equals(controller, "Admin", StringComparison.OrdinalIgnoreCase)
+                ? "AdminAccessToken"
+                : "CustomerAccessToken";
+            var token = httpContext?.Session.GetString(tokenKey);
             if (!string.IsNullOrWhiteSpace(token))
             {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);

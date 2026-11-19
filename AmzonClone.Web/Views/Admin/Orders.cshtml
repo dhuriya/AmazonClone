@@ -1,0 +1,138 @@
+﻿@model List<AmzonClone.Web.Models.Admin.OrderAdminViewModel>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Orders";
+}
+<section class="dashboard-header">
+    <div>
+        <span class="dashboard-eyebrow">STORE MANAGEMENT</span>
+        <h1>Orders</h1>
+        <p>Review orders and payment status across your store.</p>
+    </div>
+    <span class="category-count" id="orderCount">@Model.Count orders</span>
+</section>
+
+<section class="dashboard-panel">
+    <div class="panel-heading">
+        <div>
+            <h2>All orders</h2>
+            <p>Loaded from the Admin Orders API</p>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(ViewBag.OrderApiError))
+    {
+        <div class="alert alert-danger mt-3">@ViewBag.OrderApiError</div>
+    }
+
+    <div class="category-filters order-filters">
+        <label class="category-search">
+            <i class="bi bi-search"></i>
+            <input id="orderSearch" type="search"
+                   placeholder="Search order number or payment method..." />
+        </label>
+
+        <select id="orderStatusFilter" aria-label="Filter orders by status">
+            <option value="all">All statuses</option>
+            @foreach (var status in Model.Select(o => o.Status).Distinct().OrderBy(s => s))
+            {
+                <option value="@status.ToLowerInvariant()">@status</option>
+            }
+        </select>
+    </div>
+
+    <div class="table-responsive mt-3">
+        <table class="category-table">
+            <thead>
+                <tr>
+                    <th>Order</th>
+                    <th>Date</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="ordersTableBody">
+                @foreach (var order in Model)
+                {
+                    <tr data-order-number="@order.OrderNumber.ToLowerInvariant()"
+                        data-payment-method="@order.PaymentMethod.ToLowerInvariant()"
+                        data-order-status="@order.Status.ToLowerInvariant()">
+                        <td>
+                            <strong>@order.OrderNumber</strong>
+                            <small>ID: @order.Id</small>
+                        </td>
+                        <td>@order.CreatedOn.ToString("dd MMM yyyy")</td>
+                        <td>@(order.Items?.Sum(i => i.Quantity) ?? 0)</td>
+                        <td>₹@order.TotalAmount.ToString("N2")</td>
+                        <td>
+                            <span>@order.PaymentMethod</span>
+                            <small>@order.PaymentStatus</small>
+                        </td>
+                        <td>
+                            <span class="order-status-pill">
+                                @order.Status
+                            </span>
+                        </td>
+                    </tr>
+                }
+
+                <tr id="ordersNoResults" hidden>
+                    <td colspan="6" class="text-center py-4">
+                        No orders match your filters.
+                    </td>
+                </tr>
+
+                @if (Model.Count == 0 && string.IsNullOrWhiteSpace(ViewBag.OrderApiError))
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-4">No orders found.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        const orderSearch = document.getElementById("orderSearch");
+        const orderStatusFilter = document.getElementById("orderStatusFilter");
+        const ordersTableBody = document.getElementById("ordersTableBody");
+        const ordersNoResults = document.getElementById("ordersNoResults");
+        const orderCount = document.getElementById("orderCount");
+
+        function filterOrders() {
+            const query = orderSearch.value.trim().toLowerCase();
+            const selectedStatus = orderStatusFilter.value;
+            const rows = Array.from(
+                ordersTableBody.querySelectorAll("tr[data-order-number]")
+            );
+
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const matchesText =
+                    row.dataset.orderNumber.includes(query) ||
+                    row.dataset.paymentMethod.includes(query);
+
+                const matchesStatus =
+                    selectedStatus === "all" ||
+                    row.dataset.orderStatus === selectedStatus;
+
+                row.hidden = !(matchesText && matchesStatus);
+
+                if (!row.hidden) visibleCount++;
+            });
+
+            ordersNoResults.hidden = visibleCount > 0;
+            orderCount.textContent =
+                `${visibleCount} ${visibleCount === 1 ? "order" : "orders"}`;
+        }
+
+        orderSearch.addEventListener("input", filterOrders);
+        orderStatusFilter.addEventListener("change", filterOrders);
+    </script>
+}

@@ -1,39 +1,60 @@
-﻿<nav class="custom-navbar">
-    <!-- Logo -->
-    <a href="/" class="brand-logo">
+﻿<nav class="custom-navbar" aria-label="Main navigation">
+    <a asp-controller="Home" asp-action="Index" class="brand-logo">
         Shop<span>Kart</span>
     </a>
 
-    <!-- Search -->
-    <div class="search-wrapper">
+    <form asp-controller="Home" asp-action="Index" method="get" class="search-wrapper">
         <div class="search-box">
-            <i class="bi bi-search"></i>
-            <input type="text" placeholder="Search for products, brands and more..." />
-            <button class="btn-search" type="button">Search</button>
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <input type="search"
+                   name="search" value="@ViewBag.SearchTerm"
+                   aria-label="Search products"
+                   placeholder="Search products, brands and more..." />
+            <button class="btn-search" type="submit">Search</button>
         </div>
-    </div>
+    </form>
 
-    <!-- Actions -->
     <div class="nav-actions">
-        <a href="#" class="nav-icon" title="Account">
-            <i class="bi bi-person"></i>
-            <span>Account</span>
-        </a>
+        @if (Context.Session.GetString("CustomerAccessToken") is not null)
+        {
+            <form asp-controller="Account" asp-action="Logout" method="post" class="nav-logout-form">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="nav-icon" title="Sign out">
+                    <i class="bi bi-person-check" aria-hidden="true"></i><span>Sign out</span>
+                </button>
+            </form>
+        }
+        else
+        {
+            <a asp-controller="Account" asp-action="Login" class="nav-icon" title="Account">
+                <i class="bi bi-person" aria-hidden="true"></i><span>Sign in</span>
+            </a>
+        }
 
-        <a href="#" class="nav-icon" title="Wishlist">
-            <i class="bi bi-heart"></i>
-            <span>Wishlist</span>
-            <span class="badge-count">2</span>
-        </a>
+        @if (Context.Session.GetString("CustomerAccessToken") is not null)
+        {
+            <span class="nav-icon nav-icon-disabled" aria-disabled="true" title="Wishlist page is coming soon">
+                <i class="bi bi-heart" aria-hidden="true"></i><span>Wishlist</span>
+            </span>
+            <span class="nav-icon nav-icon-disabled" aria-disabled="true" title="Cart page is coming soon">
+                <i class="bi bi-cart3" aria-hidden="true"></i><span>Cart</span>
+            </span>
+        }
+        else
+        {
+            <a asp-controller="Account" asp-action="Login" class="nav-icon" title="Sign in to view wishlist">
+                <i class="bi bi-heart" aria-hidden="true"></i><span>Wishlist</span>
+            </a>
+            <a asp-controller="Account" asp-action="Login" class="nav-icon" title="Sign in to view cart">
+                <i class="bi bi-cart3" aria-hidden="true"></i><span>Cart</span>
+            </a>
+        }
 
-        <a asp-controller="Cart" asp-action="Index" class="nav-icon" title="Cart">
-            <i class="bi bi-cart3"></i>
-            <span>Cart</span>
-            <span class="badge-count">0</span>
-        </a>
-
-        <button class="mobile-menu-btn" type="button">
-            <i class="bi bi-list"></i>
+        <button class="mobile-menu-btn"
+                type="button"
+                aria-label="Show product search"
+                aria-expanded="false">
+            <i class="bi bi-search" aria-hidden="true"></i>
         </button>
     </div>
 </nav>

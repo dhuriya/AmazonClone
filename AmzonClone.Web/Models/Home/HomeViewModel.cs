@@ -6,5 +6,7 @@
         public List<ProductViewModel> FeaturedProducts { get; set; } = new();
         public List<ProductViewModel> TrendingProducts { get; set; } = new();
         public string? ErrorMessage { get; set; }
+        public string? SearchTerm { get; set; }
+        public int? SelectedCategoryId { get; set; }
     }
 }

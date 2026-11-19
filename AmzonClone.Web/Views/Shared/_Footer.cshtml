@@ -1,59 +1,68 @@
 ﻿<footer class="site-footer">
     <div class="container">
-        <div class="row g-4">
-            <div class="col-lg-4 col-md-6">
-                <a href="/" class="brand-logo">Shop<span>Kart</span></a>
+        <div class="footer-grid">
+            <section class="footer-brand-column">
+                <a asp-controller="Home" asp-action="Index" class="brand-logo">
+                    Shop<span>Kart</span>
+                </a>
+
                 <p>
-                    Your one-stop destination for everything you need.
-                    Discover millions of products with unbeatable deals
-                    and a seamless shopping experience.
+                    Your everyday marketplace for useful finds, thoughtful gifts,
+                    and everything in between.
                 </p>
-                <div class="social-icons">
+
+                <div class="social-icons" aria-label="Social links">
                     <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
-                    <a href="#" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
+                    <a href="#" aria-label="X"><i class="bi bi-twitter-x"></i></a>
                     <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
                     <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
                 </div>
-            </div>
+            </section>
 
-            <div class="col-lg-2 col-md-6 col-6">
-                <h5>Shop</h5>
+            <section class="footer-link-column">
+                <h2>Shop</h2>
                 <ul>
-                    <li><a href="#">All Products</a></li>
-                    <li><a href="#">Categories</a></li>
-                    <li><a href="#">Deals</a></li>
-                    <li><a href="#">New Arrivals</a></li>
+                    <li><a asp-controller="Home" asp-action="Index" asp-fragment="featured-products">Featured products</a></li>
+                    <li><a asp-controller="Home" asp-action="Index" asp-fragment="shop-categories">Categories</a></li>
+                    <li><a asp-controller="Home" asp-action="Index" asp-fragment="featured-products">Popular picks</a></li>
                 </ul>
-            </div>
+            </section>
 
-            <div class="col-lg-2 col-md-6 col-6">
-                <h5>Support</h5>
+            <section class="footer-link-column">
+                <h2>Help &amp; account</h2>
                 <ul>
-                    <li><a href="#">Help Center</a></li>
-                    <li><a href="#">Track Order</a></li>
-                    <li><a href="#">Returns</a></li>
-                    <li><a href="#">Contact Us</a></li>
+                    <li><a asp-controller="Account" asp-action="Login">Sign in</a></li>
+                    <li><a asp-controller="Account" asp-action="Register">Create account</a></li>
+                    <li><a href="mailto:support@shopkart.example">Contact support</a></li>
                 </ul>
-            </div>
+            </section>
 
-            <div class="col-lg-4 col-md-6">
-                <h5>Stay Updated</h5>
-                <p style="font-size:14px;">
-                    Subscribe to get special offers, free giveaways,
-                    and once-in-a-lifetime deals.
-                </p>
-                <div class="search-box" style="background:rgba(255,255,255,.08);padding:6px 6px 6px 16px;">
-                    <i class="bi bi-envelope" style="color:rgba(255,255,255,.5);"></i>
-                    <input type="email" placeholder="Enter your email"
-                           style="background:transparent;border:none;outline:none;color:#fff;flex:1;font-size:13px;" />
-                    <button class="btn-search" type="button">Subscribe</button>
-                </div>
-            </div>
+            <section class="footer-newsletter">
+                <h2>Stay in the loop</h2>
+                <p>Get product updates and occasional special offers.</p>
+
+                <form class="footer-subscribe" action="#" method="get">
+                    <label class="visually-hidden" for="footerEmail">
+                        Email address
+                    </label>
+                    <i class="bi bi-envelope" aria-hidden="true"></i>
+                    <input id="footerEmail" disabled
+                           type="email"
+                           placeholder="Your email address"
+                           autocomplete="email" />
+                    <button type="button" aria-label="Newsletter signup coming soon" disabled>
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+                </form>
+                <small class="footer-newsletter-note">
+                    Newsletter signup will be connected when its API is available.
+                </small>
+            </section>
         </div>
 
         <div class="footer-bottom">
-            © @DateTime.Now.Year ShopKart. All rights reserved. Made with
-            <i class="bi bi-heart-fill" style="color:var(--primary);"></i> in India.
+            <span>© @DateTime.Now.Year ShopKart</span>
+            <span>Made with <i class="bi bi-heart-fill"></i> in India</span>
         </div>
     </div>
 </footer>

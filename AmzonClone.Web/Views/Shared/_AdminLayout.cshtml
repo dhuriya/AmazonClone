@@ -21,17 +21,21 @@
             </a>
 
             <nav class="admin-nav">
-                <a class="active" asp-controller="Admin" asp-action="Index">
+                <a class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : null)" asp-controller="Admin" asp-action="Index">
                     <i class="bi bi-grid"></i> Overview
                 </a>
-                <a asp-controller="Admin" asp-action="Products">
-                    <i class="bi bi-box-seam"></i> Products
-                </a>
-                <a href="#"><i class="bi bi-receipt"></i> Orders</a>
-                <a href="#"><i class="bi bi-people"></i> Customers</a>
-                <a asp-controller="Admin" asp-action="Categories">
+                <a class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Categories" ? "active" : null)" asp-controller="Admin" asp-action="Categories">
                     <i class="bi bi-collection"></i> Categories
                 </a>
+                <a class="@(new[] { "Products", "CreateProduct", "EditProduct" }.Contains(ViewContext.RouteData.Values["action"]?.ToString()) ? "active" : null)" asp-controller="Admin" asp-action="Products">
+                    <i class="bi bi-box-seam"></i> Products
+                </a>
+                <a class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Orders" ? "active" : null)" asp-controller="Admin" asp-action="Orders">
+                    <i class="bi bi-receipt"></i> Orders
+                </a>
+                <span class="admin-nav-disabled" aria-disabled="true" title="Customer management is not available yet">
+                    <i class="bi bi-people"></i> Customers <small>Coming soon</small>
+                </span>
             </nav>
         </aside>
 
@@ -48,6 +52,7 @@
     </div>
 
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

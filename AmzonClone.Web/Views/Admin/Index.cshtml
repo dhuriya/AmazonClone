@@ -80,19 +80,19 @@
             </div>
         </div>
 
-        <a class="quick-action" href="#">
+        <a class="quick-action" asp-controller="Admin" asp-action="Products">
             <span class="quick-action-icon"><i class="bi bi-box-seam"></i></span>
             <span><strong>Manage products</strong><small>Catalog and stock</small></span>
             <i class="bi bi-arrow-up-right"></i>
         </a>
 
-        <a class="quick-action" href="#">
+        <a class="quick-action" asp-controller="Admin" asp-action="Orders">
             <span class="quick-action-icon"><i class="bi bi-receipt"></i></span>
             <span><strong>View orders</strong><small>Fulfillment and status</small></span>
             <i class="bi bi-arrow-up-right"></i>
         </a>
 
-        <a class="quick-action" href="#">
+        <a class="quick-action" asp-controller="Admin" asp-action="Categories">
             <span class="quick-action-icon"><i class="bi bi-collection"></i></span>
             <span><strong>Manage categories</strong><small>Organize your catalog</small></span>
             <i class="bi bi-arrow-up-right"></i>
@@ -106,7 +106,7 @@
             <h2>Recent orders</h2>
             <p>Your latest store orders</p>
         </div>
-        <a href="#">View all</a>
+        <a asp-controller="Admin" asp-action="Orders">View all</a>
     </div>
 
     <div class="orders-empty">

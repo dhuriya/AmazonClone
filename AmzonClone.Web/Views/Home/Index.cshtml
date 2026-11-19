@@ -1,205 +1,214 @@
 ﻿@model AmzonClone.Web.Models.Home.HomeViewModel
+
 @{
     ViewData["Title"] = "Home";
 }
 
-<!-- ================= HERO ================= -->
-<section class="hero-section text-white">
-    <div class="container py-5">
-        <div class="row align-items-center py-5">
-            <div class="col-lg-7 fade-in-up">
-                <span class="hero-badge">
-                    <span class="dot"></span> AmazonClone
-                </span>
-                <h1 class="hero-title">
-                    Everything you need,<br />
-                    <span class="accent">all in one place.</span>
-                </h1>
-                <p class="hero-subtitle">
-                    Discover millions of products, unbeatable deals, and a shopping
-                    experience designed around you.
-                </p>
-                <div class="d-flex gap-3 flex-wrap">
-                    <a asp-controller="Product" asp-action="Index"
-                       class="btn btn-warning btn-lg">
-                        Shop Now <i class="bi bi-arrow-right"></i>
-                    </a>
-                    <a href="#categories" class="btn btn-outline-light btn-lg">
-                        Browse Categories
-                    </a>
-                </div>
-            </div>
-            <div class="col-lg-5 text-center mt-5 mt-lg-0">
-                <div class="hero-icon-wrap">
-                    <i class="bi bi-bag-check"></i>
-                </div>
-            </div>
+@if (!string.IsNullOrWhiteSpace(Model?.ErrorMessage))
+{
+    <div class="container mt-3">
+        <div class="alert alert-warning">@Model.ErrorMessage</div>
+    </div>
+}
+
+<section class="shop-hero fade-in-up">
+    <div class="shop-hero-copy">
+        <span class="shop-eyebrow">
+            <i class="bi bi-stars"></i> YOUR EVERYDAY MARKETPLACE
+        </span>
+
+        <h1>Find your next<br /><span>favorite thing.</span></h1>
+
+        <p>
+            Explore products for your home, work, and everything in between.
+            Great finds are just a few clicks away.
+        </p>
+
+        <div class="shop-hero-actions">
+            <a href="#featured-products" class="shop-button-primary">
+                Explore products <i class="bi bi-arrow-right"></i>
+            </a>
+            <a href="#shop-categories" class="shop-button-secondary">
+                Browse categories
+            </a>
         </div>
+
+        <div class="shop-hero-note">
+            <i class="bi bi-truck"></i>
+            Discover something useful, delightful, or both.
+        </div>
+    </div>
+
+    <div class="shop-hero-art" aria-hidden="true">
+        <div class="hero-orbit orbit-one"></div>
+        <div class="hero-orbit orbit-two"></div>
+        <div class="hero-bag"><i class="bi bi-bag-heart-fill"></i></div>
+        <span class="hero-floating-icon floating-box"><i class="bi bi-box-seam"></i></span>
+        <span class="hero-floating-icon floating-star"><i class="bi bi-stars"></i></span>
+        <span class="hero-floating-icon floating-heart"><i class="bi bi-heart-fill"></i></span>
+        <div class="hero-art-label">A little something<br />for every day</div>
     </div>
 </section>
 
-<!-- ================= ALERTS ================= -->
-@if (!string.IsNullOrWhiteSpace(Model?.ErrorMessage))
-{
-    <div class="container mt-4">
-        <div class="alert alert-warning">
-            <i class="bi bi-exclamation-triangle me-2"></i>@Model.ErrorMessage
-        </div>
-    </div>
-}
-@if (ViewBag.ApiError != null)
-{
-    <div class="container mt-3">
-        <div class="alert alert-danger">
-            <i class="bi bi-x-circle me-2"></i>@ViewBag.ApiError
-        </div>
-    </div>
-}
+<section class="shop-benefits container" aria-label="Shopping benefits">
+    <div><span><i class="bi bi-grid"></i></span><strong>Explore categories</strong><small>Find what you need</small></div>
+    <div><span><i class="bi bi-heart"></i></span><strong>Save favorites</strong><small>Keep them close</small></div>
+    <div><span><i class="bi bi-box2-heart"></i></span><strong>Easy ordering</strong><small>Checkout with ease</small></div>
+</section>
 
-<!-- ================= CATEGORIES ================= -->
-<section class="container py-5" id="categories">
-    <div class="section-head">
+<section class="shop-section container" id="shop-categories">
+    <div class="shop-section-heading">
         <div>
-            <h2>Shop by Category</h2>
-            <p>Explore our most popular collections</p>
+            <span class="shop-eyebrow">BROWSE THE STORE</span>
+            <h2>Shop by category</h2>
+            <p>Start with a category and see where it takes you.</p>
         </div>
-        <a asp-controller="Product" asp-action="Index" class="link-view-all">
-            View All <i class="bi bi-arrow-right"></i>
+        <a href="#featured-products" class="shop-text-link">
+            Explore the store <i class="bi bi-arrow-up-right"></i>
         </a>
     </div>
 
-    <div class="row g-4">
+    <div class="shop-category-grid">
         @if (Model?.Categories?.Any() == true)
         {
             foreach (var category in Model.Categories)
             {
-                <div class="col-6 col-md-4 col-lg-3">
-                    <a asp-controller="Product" asp-action="Index"
-                       asp-route-categoryId="@category.Id"
-                       class="d-block h-100">
-                        <div class="category-card">
-                            @if (!string.IsNullOrWhiteSpace(category.ImageUrl))
-                            {
-                                <img src="@category.ImageUrl" alt="@category.Name" loading="lazy" />
-                            }
-                            else
-                            {
-                                <div class="category-icon">
-                                    <i class="bi bi-grid"></i>
-                                </div>
-                            }
-                            <h5>@category.Name</h5>
-                        </div>
-                    </a>
-                </div>
+                <a class="shop-category-card" asp-controller="Home" asp-action="Index"
+                   asp-route-categoryId="@category.Id" asp-fragment="featured-products">
+                    <span class="shop-category-icon"><i class="bi bi-grid-1x2"></i></span>
+                    <span class="shop-category-name">@category.Name</span>
+                    <i class="bi bi-arrow-up-right category-arrow"></i>
+                </a>
             }
         }
         else
         {
-            <div class="col-12">
-                <div class="empty-state">
-                    <i class="bi bi-grid"></i>
-                    <p>No categories available.</p>
-                </div>
+            <div class="shop-empty-state">
+                <i class="bi bi-grid"></i>
+                <span>Categories will appear here when available.</span>
             </div>
         }
     </div>
 </section>
 
-<!-- ================= FEATURED PRODUCTS ================= -->
-<section class="container pb-5">
-    <div class="section-head">
+<section class="shop-section container" id="featured-products">
+    <div class="shop-section-heading">
         <div>
-            <h2>Featured Products</h2>
-            <p>Handpicked favorites just for you</p>
+            <span class="shop-eyebrow">PICKS FOR YOU</span>
+            <h2>@(Model?.SearchTerm is null && Model?.SelectedCategoryId is null ? "Featured products" : "Products")</h2>
+            <p>
+                @if (!string.IsNullOrWhiteSpace(Model?.SearchTerm))
+                {
+                    <span>Results for “@Model.SearchTerm”</span>
+                }
+                else if (Model?.SelectedCategoryId is not null)
+                {
+                    <span>Showing products from the selected category.</span>
+                }
+                else
+                {
+                    <span>A few good finds to get you started.</span>
+                }
+            </p>
         </div>
-        <a asp-controller="Product" asp-action="Index" class="link-view-all">
-            View All <i class="bi bi-arrow-right"></i>
-        </a>
+                <a asp-controller="Home" asp-action="Index" class="shop-text-link">
+                    Clear filters <i class="bi bi-arrow-counterclockwise"></i>
+                </a>
     </div>
 
-    <div class="row g-4">
+    <div class="shop-product-grid">
         @if (Model?.FeaturedProducts?.Any() == true)
         {
-            foreach (var product in Model.FeaturedProducts.Take(8))
+            var productsToShow = Model.SearchTerm is null && Model.SelectedCategoryId is null
+                ? Model.FeaturedProducts.Take(8)
+                : Model.FeaturedProducts;
+            foreach (var product in productsToShow)
             {
-                var hasOffer = product.OfferPrice.HasValue && product.Price > product.OfferPrice.Value;
+                var hasOffer =
+                product.OfferPrice.HasValue &&
+                product.Price > product.OfferPrice.Value &&
+                product.Price > 0;
+
                 var discount = hasOffer
-                ? (int)((product.Price - product.OfferPrice!.Value) / product.Price * 100)
+                ? (int)Math.Round(
+                (product.Price - product.OfferPrice!.Value) /
+                product.Price * 100)
                 : 0;
 
-                <div class="col-6 col-md-4 col-lg-3">
-                    <div class="product-card">
-                        <div class="product-image-wrap">
+                <article class="shop-product-card fade-in-up">
+                    <div class="shop-product-image">
+                        @if (hasOffer)
+                        {
+                            <span class="shop-discount">Save @discount%</span>
+                        }
+
+                        @if (Context.Session.GetString("CustomerAccessToken") is not null)
+                        {
+                            <span class="shop-wishlist nav-icon-disabled" aria-disabled="true" title="Wishlist is coming soon">
+                                <i class="bi bi-heart" aria-hidden="true"></i>
+                            </span>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login"
+                               class="shop-wishlist" aria-label="Sign in to save favorites">
+                                <i class="bi bi-heart"></i>
+                            </a>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(product.ImageUrl))
+                        {
+                            <img src="@Url.Action("ProductImage", "Home", new { fileName = product.ImageUrl.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries).LastOrDefault() })"
+                                 alt="@product.Name"
+                                 loading="lazy"
+                                 onerror="this.style.display='none'; this.nextElementSibling.hidden=false;" />
+                            <span class="shop-product-placeholder" hidden><i class="bi bi-image"></i></span>
+                        }
+                        else
+                        {
+                            <span class="shop-product-placeholder">
+                                <i class="bi bi-image"></i>
+                            </span>
+                        }
+                    </div>
+
+                    <div class="shop-product-info">
+                        <h3>@product.Name</h3>
+                        @if (!string.IsNullOrWhiteSpace(product.CategoryName))
+                        {
+                            <span class="shop-product-category">@product.CategoryName</span>
+                        }
+
+                        <div class="shop-rating">
+                            <i class="bi bi-star-fill"></i>
+                            <span>@product.Rating.ToString("0.0")</span>
+                            <span class="shop-review-count">(@product.ReviewCount reviews)</span>
+                        </div>
+
+                        <div class="shop-product-price">
                             @if (hasOffer)
                             {
-                                <span class="discount-badge">-@discount% OFF</span>
-                            }
-                            <button class="wishlist-btn" type="button" title="Add to wishlist">
-                                <i class="bi bi-heart"></i>
-                            </button>
-
-                            @if (!string.IsNullOrWhiteSpace(product.ImageUrl))
-                            {
-                                <img src="@product.ImageUrl" alt="@product.Name" loading="lazy" />
+                                <strong>₹@product.OfferPrice!.Value.ToString("N0")</strong>
+                                <del>₹@product.Price.ToString("N0")</del>
                             }
                             else
                             {
-                                <i class="bi bi-image text-muted" style="font-size:4rem;"></i>
+                                <strong>₹@product.Price.ToString("N0")</strong>
                             }
                         </div>
-
-                        <div class="product-body">
-                            <h6 class="product-title" title="@product.Name">
-                                @product.Name
-                            </h6>
-
-                            <div class="product-rating">
-                                <span class="stars">
-                                    <i class="bi bi-star-fill"></i>
-                                </span>
-                                <span>@product.Rating.ToString("0.0")</span>
-                                <span class="count">(@product.ReviewCount)</span>
-                            </div>
-
-                            <div class="product-price">
-                                @if (hasOffer)
-                                {
-                                    <span class="current">
-                                        ₹@product.OfferPrice!.Value.ToString("N0")
-                                    </span>
-                                    <span class="old">
-                                        ₹@product.Price.ToString("N0")
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="current">
-                                        ₹@product.Price.ToString("N0")
-                                    </span>
-                                }
-                            </div>
-                        </div>
-
-                        <div class="product-footer">
-                            <a asp-controller="Product"
-                               asp-action="Details"
-                               asp-route-id="@product.Id"
-                               class="btn-view">
-                                <i class="bi bi-eye"></i> View Details
-                            </a>
-                        </div>
                     </div>
-                </div>
+
+                    <span class="shop-product-link">
+                        In your store catalog <i class="bi bi-arrow-right"></i>
+                    </span>
+                </article>
             }
         }
         else
         {
-            <div class="col-12">
-                <div class="empty-state">
-                    <i class="bi bi-box-seam"></i>
-                    <p>No products available right now.</p>
-                </div>
+            <div class="shop-empty-state">
+                <i class="bi bi-box-seam"></i>
+                <span>@(string.IsNullOrWhiteSpace(Model?.SearchTerm) && Model?.SelectedCategoryId is null ? "Products will appear here when available." : "No products match these filters.")</span>
             </div>
         }
     </div>

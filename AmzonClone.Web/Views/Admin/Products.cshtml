@@ -83,15 +83,17 @@
                             data-product-name="@product.Name.ToLowerInvariant()"
                             data-product-category="@((product.CategoryName ?? string.Empty).ToLowerInvariant())"
                             data-product-status="@(product.IsActive ? "active" : "inactive")"
-                            data-product-price="@product.Price"
+                            data-product-price="@product.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)"
                             data-product-stock="@product.Stock">
                             <td>
                                 @if (!string.IsNullOrWhiteSpace(product.ImageUrl))
                                 {
                                     <img class="product-thumbnail"
-                                         src="@($"{ViewBag.ApiRoot}/{product.ImageUrl.TrimStart('/')}")"
+                                         src="@Url.Action("ProductImage", "Home", new { fileName = product.ImageUrl.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries).LastOrDefault() })"
                                          alt="@product.Name"
-                                         loading="lazy" />
+                                         loading="lazy"
+                                         onerror="this.style.display='none'; this.nextElementSibling.hidden=false;" />
+                                    <span class="product-thumbnail-empty" hidden><i class="bi bi-image"></i></span>
                                 }
                                 else
                                 {
@@ -147,20 +149,10 @@
                         </tr>
                     }
                 }
-                else
-                {
-                    <tr>
-                        <td colspan="5" class="text-center py-4">
-                            No products found.
-                        </td>
-                    </tr>
-                }
+                <tr id="productNoResults" hidden>
+                    <td colspan="8" class="text-center py-4"></td>
+                </tr>
             </tbody>
-            <tr id="productNoResults" hidden>
-                <td colspan="5" class="text-center py-4">
-                    No products match your filters.
-                </td>
-            </tr>
         </table>
         <div class="category-pagination">
             <label>
@@ -212,7 +204,8 @@
             const matchingRows = rows.filter(row => {
                 const matchesText =
                     row.dataset.productName.includes(query) ||
-                    row.dataset.productCategory.includes(query);
+                    row.dataset.productCategory.includes(query) ||
+                    row.querySelector("td:nth-child(3)").textContent.toLowerCase().includes(query);
 
                 const matchesStatus =
                     status === "all" || row.dataset.productStatus === status;
@@ -253,6 +246,9 @@
             matchingRows.forEach(row => productBody.appendChild(row));
 
             productNoResults.hidden = matchingRows.length > 0;
+            productNoResults.querySelector("td").textContent = rows.length === 0
+                ? "No products are available yet."
+                : "No products match your filters.";
             productCount.textContent =
                 `${matchingRows.length} ${matchingRows.length === 1 ? "product" : "products"}`;
 
@@ -297,10 +293,6 @@
         });
 
         filterProducts();
-
-        productSearch.addEventListener("input", filterProducts);
-        productStatus.addEventListener("change", filterProducts);
-        productSort.addEventListener("change", filterProducts);
 
         document.querySelectorAll(".product-delete-form").forEach(form => {
             form.addEventListener("submit", event => {

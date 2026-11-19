@@ -1,0 +1,49 @@
+﻿@model AmzonClone.Web.Models.Account.CustomerRegisterViewModel
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Create Account";
+}
+
+<section class="account-auth-page">
+    <form asp-action="Register" method="post" class="account-auth-card">
+        @Html.AntiForgeryToken()
+
+        <span class="dashboard-eyebrow">JOIN SHOPKART</span>
+        <h1>Create your account</h1>
+        <p>Sign up to shop, track orders, and save your favorites.</p>
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <label asp-for="FirstName">First name</label>
+        <input asp-for="FirstName" autocomplete="given-name" />
+        <span asp-validation-for="FirstName" class="text-danger"></span>
+
+        <label asp-for="LastName">Last name</label>
+        <input asp-for="LastName" autocomplete="family-name" />
+        <span asp-validation-for="LastName" class="text-danger"></span>
+
+        <label asp-for="Email">Email address</label>
+        <input asp-for="Email" type="email" autocomplete="email" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+
+        <label asp-for="Password">Password</label>
+        <input asp-for="Password" autocomplete="new-password" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+
+        <label asp-for="ConfirmPassword">Confirm password</label>
+        <input asp-for="ConfirmPassword" autocomplete="new-password" />
+        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+
+        <button type="submit">Create account</button>
+
+        <div class="account-auth-footer">
+            Already have an account?
+            <a asp-action="Login">Sign in</a>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
