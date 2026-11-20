@@ -36,17 +36,23 @@
             <span class="nav-icon nav-icon-disabled" aria-disabled="true" title="Wishlist page is coming soon">
                 <i class="bi bi-heart" aria-hidden="true"></i><span>Wishlist</span>
             </span>
-            <span class="nav-icon nav-icon-disabled" aria-disabled="true" title="Cart page is coming soon">
-                <i class="bi bi-cart3" aria-hidden="true"></i><span>Cart</span>
-            </span>
+            <a asp-controller="Cart" asp-action="Index" class="nav-icon" title="View cart">
+                <i class="bi bi-cart3" aria-hidden="true"></i>
+                <span>Cart</span>
+            </a>
         }
         else
         {
             <a asp-controller="Account" asp-action="Login" class="nav-icon" title="Sign in to view wishlist">
                 <i class="bi bi-heart" aria-hidden="true"></i><span>Wishlist</span>
             </a>
-            <a asp-controller="Account" asp-action="Login" class="nav-icon" title="Sign in to view cart">
-                <i class="bi bi-cart3" aria-hidden="true"></i><span>Cart</span>
+            <a asp-controller="Account"
+               asp-action="Login"
+               asp-route-returnUrl="@Url.Action("Index", "Cart")"
+               class="nav-icon"
+               title="Sign in to view cart">
+                <i class="bi bi-cart3" aria-hidden="true"></i>
+                <span>Cart</span>
             </a>
         }
 

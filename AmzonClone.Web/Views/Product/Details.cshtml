@@ -1,0 +1,152 @@
+﻿@model AmzonClone.Web.Models.Home.ProductViewModel
+
+@{
+    ViewData["Title"] = Model.Name;
+
+    var imageFileName = string.IsNullOrWhiteSpace(Model.ImageUrl) ? null : Model.ImageUrl
+            .Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries)
+            .LastOrDefault();
+
+    var imageUrl = imageFileName is null
+        ? null
+        : Url.Action("ProductImage", "Home", new { fileName = imageFileName });
+}
+
+<section class="product-details-page container">
+    <nav class="product-breadcrumb" aria-label="Breadcrumb">
+        <a asp-controller="Home" asp-action="Index">Home</a>
+        <i class="bi bi-chevron-right" aria-hidden="true"></i>
+
+        @if (Model.CategoryId > 0)
+        {
+            <a asp-controller="Home"
+               asp-action="Index"
+               asp-route-categoryId="@Model.CategoryId"
+               asp-fragment="featured-products">
+                @(Model.CategoryName ?? "Products")
+            </a>
+        }
+        else
+        {
+            <span>Products</span>
+        }
+
+        <i class="bi bi-chevron-right" aria-hidden="true"></i>
+        <span>@Model.Name</span>
+    </nav>
+
+    <div class="product-details-card">
+        <div class="product-details-image">
+            @if (imageUrl is not null)
+            {
+                <img src="@imageUrl"
+                     alt="@Model.Name"
+                     onerror="this.hidden=true; this.nextElementSibling.hidden=false;" />
+                <div class="product-details-image-placeholder" hidden>
+                    <i class="bi bi-image"></i>
+                    <span>Product image unavailable</span>
+                </div>
+            }
+            else
+            {
+                <div class="product-details-image-placeholder">
+                    <i class="bi bi-image"></i>
+                    <span>No product image available</span>
+                </div>
+            }
+        </div>
+
+        <div class="product-details-info">
+            <span class="product-details-eyebrow">
+                @(Model.CategoryName ?? "SHOPKART PRODUCT")
+            </span>
+
+            <h1>@Model.Name</h1>
+
+            <div class="product-details-price">
+                ₹@Model.Price.ToString("N2")
+            </div>
+
+            @if (Model.IsActive && Model.Stock > 0)
+            {
+                <p class="product-stock in-stock">
+                    <i class="bi bi-check-circle-fill"></i>
+                    In stock · @Model.Stock available
+                </p>
+            }
+            else
+            {
+                <p class="product-stock out-of-stock">
+                    <i class="bi bi-x-circle-fill"></i>
+                    Currently unavailable
+                </p>
+            }
+
+            <div class="product-description">
+                <h2>About this product</h2>
+                <p>
+                    @(string.IsNullOrWhiteSpace(Model.Description)
+                        ? "No product description is available yet."
+                        : Model.Description)
+                </p>
+            </div>
+
+            <div class="product-details-actions">
+                @if (Context.Session.GetString("CustomerAccessToken") is null)
+                {
+                    <a class="product-signin-button"
+                       asp-controller="Account"
+                       asp-action="Login"
+                       asp-route-returnUrl="@Url.Action("Details", "Product", new { id = Model.Id })">
+                        <i class="bi bi-person"></i>
+                        Sign in to continue
+                    </a>
+                }
+                else if (Model.IsActive && Model.Stock > 0)
+                {
+                    <form asp-controller="Cart"
+                          asp-action="Add"
+                          method="post"
+                          class="product-add-cart-form">
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden" name="ProductId" value="@Model.Id" />
+
+                        <label for="productQuantity">Quantity</label>
+                        <input id="productQuantity"
+                               name="Quantity"
+                               type="number"
+                               min="1"
+                               max="@Model.Stock"
+                               value="1" />
+
+                        <button type="submit" class="product-signin-button">
+                            <i class="bi bi-bag-plus"></i>
+                            Add to cart
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <button class="product-cart-coming-soon" type="button" disabled>
+                        Currently unavailable
+                    </button>
+                }
+
+                @if (TempData["ProductError"] is string productError)
+                {
+                    <div class="alert alert-danger" role="alert">@productError</div>
+                }
+
+                <a class="product-back-button"
+                   asp-controller="Home"
+                   asp-action="Index"
+                   asp-route-categoryId="@(Model.CategoryId > 0 ? Model.CategoryId : null)"
+                   asp-fragment="featured-products">
+                    <i class="bi bi-arrow-left"></i>
+                    Continue shopping
+                </a>
+            </div>
+        </div>
+    </div>
+</section>

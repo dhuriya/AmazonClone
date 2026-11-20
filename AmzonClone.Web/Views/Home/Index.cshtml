@@ -198,9 +198,12 @@
                         </div>
                     </div>
 
-                    <span class="shop-product-link">
-                        In your store catalog <i class="bi bi-arrow-right"></i>
-                    </span>
+                    <a class="shop-product-link"
+                       asp-controller="Product"
+                       asp-action="Details"
+                       asp-route-id="@product.Id">
+                        View details <i class="bi bi-arrow-right"></i>
+                    </a>
                 </article>
             }
         }

@@ -12,5 +12,7 @@
         public decimal? OfferPrice { get; set; }
         public double Rating { get; set; }
         public int ReviewCount { get; set; }
+        public int Stock { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 }

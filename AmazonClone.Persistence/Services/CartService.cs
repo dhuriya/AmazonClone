@@ -36,7 +36,9 @@ namespace AmazonClone.Persistence.Services
                     ProductName = ci.Product.Name,
                     Price = ci.Product.Price,
                     Quantity = ci.Quantity,
-                    ItemTotal = ci.Product.Price * ci.Quantity
+                    ItemTotal = ci.Product.Price * ci.Quantity,
+                    ImageUrl = ci.Product.ImageUrl,
+                    Stock = ci.Product.Stock
                 }).ToList();
             return new CartDto
             {

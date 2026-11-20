@@ -1,0 +1,163 @@
+﻿@model AmzonClone.Web.Models.Cart.CartViewModel
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Your cart";
+}
+
+<section class="cart-page container">
+    <header class="cart-heading">
+        <div>
+            <span class="shop-eyebrow">YOUR SHOPPING BAG</span>
+            <h1>Your cart</h1>
+            <p>Review your items before checkout.</p>
+        </div>
+
+        <span class="cart-item-count">
+            @Model.Items.Sum(item => item.Quantity)
+            @(Model.Items.Sum(item => item.Quantity) == 1 ? "item" : "items")
+        </span>
+    </header>
+
+    @if (TempData["CartSuccess"] is string success)
+    {
+        <div class="alert alert-success" role="status">@success</div>
+    }
+    @if (TempData["CartError"] is string error)
+    {
+        <div class="alert alert-danger" role="alert">@error</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(ViewBag.CartError))
+    {
+        <div class="alert alert-danger" role="alert">@ViewBag.CartError</div>
+    }
+
+    @if (Model.Items.Any())
+    {
+        <div class="cart-layout">
+            <div class="cart-items">
+                @foreach (var item in Model.Items)
+                {
+                    var imageFileName = item.ImageUrl?
+                    .Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries)
+                    .LastOrDefault();
+
+                    var imageUrl = string.IsNullOrWhiteSpace(imageFileName)
+                    ? null
+                    : Url.Action("ProductImage", "Home", new { fileName = imageFileName });
+
+                    <article class="cart-item">
+                        <a asp-controller="Product"
+                           asp-action="Details"
+                           asp-route-id="@item.ProductId"
+                           class="cart-item-image">
+                            @if (imageUrl is not null)
+                            {
+                                <img src="@imageUrl"
+                                     alt="@item.ProductName"
+                                     onerror="this.hidden=true; this.nextElementSibling.hidden=false;" />
+                                <span hidden><i class="bi bi-image"></i></span>
+                            }
+                            else
+                            {
+                                <span><i class="bi bi-image"></i></span>
+                            }
+                        </a>
+
+                        <div class="cart-item-info">
+                            <a asp-controller="Product"
+                               asp-action="Details"
+                               asp-route-id="@item.ProductId"
+                               class="cart-item-name">
+                                @item.ProductName
+                            </a>
+
+                            <span class="cart-item-stock">
+                                @item.Stock available
+                            </span>
+
+                            <strong class="cart-item-price">
+                                ₹@item.Price.ToString("N2")
+                            </strong>
+
+                            <div class="cart-item-controls">
+                                <form asp-controller="Cart"
+                                      asp-action="UpdateQuantity"
+                                      method="post"
+                                      class="cart-quantity-form">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden"
+                                           name="ProductId"
+                                           value="@item.ProductId" />
+                                    <label class="visually-hidden"
+                                           for="quantity-@item.ProductId">
+                                        Quantity for @item.ProductName
+                                    </label>
+                                    <input id="quantity-@item.ProductId"
+                                           name="Quantity"
+                                           type="number"
+                                           min="1"
+                                           max="@Math.Max(item.Stock, 1)"
+                                           value="@item.Quantity" />
+                                    <button type="submit">Update</button>
+                                </form>
+
+                                <form asp-controller="Cart"
+                                      asp-action="Remove"
+                                      method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden"
+                                           name="productId"
+                                           value="@item.ProductId" />
+                                    <button type="submit" class="cart-remove-button">
+                                        Remove
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <strong class="cart-item-total">
+                            ₹@item.ItemTotal.ToString("N2")
+                        </strong>
+                    </article>
+                }
+            </div>
+
+            <aside class="cart-summary">
+                <h2>Order summary</h2>
+
+                <div class="cart-summary-row">
+                    <span>Subtotal</span>
+                    <strong>₹@Model.GrandTotal.ToString("N2")</strong>
+                </div>
+
+                <div class="cart-summary-row">
+                    <span>Shipping</span>
+                    <span>Calculated at checkout</span>
+                </div>
+
+                <div class="cart-summary-total">
+                    <span>Total</span>
+                    <strong>₹@Model.GrandTotal.ToString("N2")</strong>
+                </div>
+
+                <button type="button" class="cart-checkout-button" disabled>
+                    Continue to checkout
+                </button>
+
+                <small>Checkout will be connected in the next feature.</small>
+            </aside>
+        </div>
+    }
+    else
+    {
+        <div class="cart-empty">
+            <span><i class="bi bi-bag"></i></span>
+            <h2>Your cart is empty</h2>
+            <p>Browse the store and add something you like.</p>
+            <a asp-controller="Home" asp-action="Index" class="shop-button-primary">
+                Explore products <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    }
+</section>

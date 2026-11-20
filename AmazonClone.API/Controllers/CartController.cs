@@ -31,7 +31,15 @@ namespace AmazonClone.API.Controllers
         public async Task<IActionResult> AddToCart(AddToCartDto dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var result = await _cartService.AddToCartAsync(userId, dto);
+            var result = await _cartService.AddToCartAsync(userId!, dto);
+            if(!result)
+            {
+                return BadRequest(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Could not add the item. Check product availability and stock."
+                });
+            }
             return Ok(new ApiResponse<object>
             {
                 Success = true,
@@ -72,10 +80,10 @@ namespace AmazonClone.API.Controllers
             var result = await _cartService.UpdateQuantityAsync(userId, dto);
             if (!result)
             {
-                return NotFound(new ApiResponse<object>
+                return BadRequest(new ApiResponse<object>
                 {
                     Success = false,
-                    Message = "Cart item not found."
+                    Message = "Could not update the quantity. Check available stock."
                 });
             }
             return Ok(new ApiResponse<object>
