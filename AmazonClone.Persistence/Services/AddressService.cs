@@ -42,7 +42,7 @@ namespace AmazonClone.Persistence.Services
             if(dto.IsDefault)
             {
                 var oldAddresses = await _context.Addresses
-                    .Where(a => a.UserId == userId)
+                    .Where(a => a.UserId == userId && !a.IsDeleted)
                     .ToListAsync();
                 foreach (var address in oldAddresses)
                 {
@@ -81,7 +81,7 @@ namespace AmazonClone.Persistence.Services
         public async Task<bool> DeleteAsync(string userId, int addressId)
         {
             var address = await _context.Addresses
-                .FirstOrDefaultAsync(a => a.Id == addressId && a.UserId == userId);
+                .FirstOrDefaultAsync(a => a.Id == addressId && a.UserId == userId && !a.IsDeleted);
             if (address == null)
                 return false;
             address.IsDeleted = true;
@@ -101,7 +101,7 @@ namespace AmazonClone.Persistence.Services
             if (dto.IsDefault)
             {
                 var oldAddresses = await _context.Addresses
-                    .Where(a => a.UserId == userId)
+                    .Where(a => a.UserId == userId && !a.IsDeleted)
                     .ToListAsync();
 
                 foreach (var item in oldAddresses)

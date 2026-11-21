@@ -305,5 +305,12 @@ namespace AmazonClone.Persistence.Services
                 _ => false, // Allow all other transitions
             };
         }
+
+        public async Task<List<OrderDto>> GetAllOrdersForAdminAsync()
+        {
+            var orders = await _context.Orders.AsNoTracking().Include(o => o.OrderItems).Where(o => !o.IsDeleted)
+                .OrderByDescending(o => o.CreatedOn).ToListAsync();
+            return orders.Select(MapToDto).ToList();
+        }
     }
 }

@@ -1,0 +1,109 @@
+﻿@model AmzonClone.Web.Models.Address.AddressViewModel
+
+@{
+    Layout = "_Layout";
+    var isEdit = Model.Id > 0;
+    ViewData["Title"] = isEdit ? "Edit address" : "Add address";
+}
+
+<section class="address-form-page container">
+    <a asp-action="Index" class="address-back-link">
+        <i class="bi bi-arrow-left"></i>
+        Back to saved addresses
+    </a>
+
+    <div class="address-form-card">
+        <span class="shop-eyebrow">DELIVERY DETAILS</span>
+        <h1>@(isEdit ? "Edit address" : "Add a new address")</h1>
+        <p>Enter the address where you would like your orders delivered.</p>
+
+        @if (!string.IsNullOrWhiteSpace(ViewBag.FormError))
+        {
+            <div class="alert alert-danger" role="alert">@ViewBag.FormError</div>
+        }
+
+        <form asp-controller="Address"
+              asp-action="@(isEdit ? "Edit" : "Create")"
+              method="post">
+            <input asp-for="Id" type="hidden" />
+
+            <div asp-validation-summary="ModelOnly"
+                 class="alert alert-danger"></div>
+
+            <div class="address-form-grid">
+                <div class="address-field">
+                    <label asp-for="FullName">Full name</label>
+                    <input asp-for="FullName" autocomplete="name" />
+                    <span asp-validation-for="FullName" class="text-danger"></span>
+                </div>
+
+                <div class="address-field">
+                    <label asp-for="PhoneNumber">Phone number</label>
+                    <input asp-for="PhoneNumber"
+                           type="tel"
+                           autocomplete="tel" />
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                </div>
+
+                <div class="address-field address-field-wide">
+                    <label asp-for="AddressLine1">Address line 1</label>
+                    <input asp-for="AddressLine1"
+                           autocomplete="address-line1"
+                           placeholder="House number, street, area" />
+                    <span asp-validation-for="AddressLine1" class="text-danger"></span>
+                </div>
+
+                <div class="address-field address-field-wide">
+                    <label asp-for="AddressLine2">
+                        Address line 2 <span>(optional)</span>
+                    </label>
+                    <input asp-for="AddressLine2"
+                           autocomplete="address-line2"
+                           placeholder="Apartment, landmark, etc." />
+                    <span asp-validation-for="AddressLine2" class="text-danger"></span>
+                </div>
+
+                <div class="address-field">
+                    <label asp-for="City">City</label>
+                    <input asp-for="City" autocomplete="address-level2" />
+                    <span asp-validation-for="City" class="text-danger"></span>
+                </div>
+
+                <div class="address-field">
+                    <label asp-for="State">State</label>
+                    <input asp-for="State" autocomplete="address-level1" />
+                    <span asp-validation-for="State" class="text-danger"></span>
+                </div>
+
+                <div class="address-field">
+                    <label asp-for="PostalCode">Postal code</label>
+                    <input asp-for="PostalCode" autocomplete="postal-code" />
+                    <span asp-validation-for="PostalCode" class="text-danger"></span>
+                </div>
+
+                <div class="address-field">
+                    <label asp-for="Country">Country</label>
+                    <input asp-for="Country" autocomplete="country-name" />
+                    <span asp-validation-for="Country" class="text-danger"></span>
+                </div>
+            </div>
+
+            <label class="address-default-option">
+                <input asp-for="IsDefault" />
+                <span>Make this my default delivery address</span>
+            </label>
+
+            <div class="address-form-actions">
+                <a asp-action="Index" class="address-cancel-button">Cancel</a>
+                <button type="submit" class="address-add-button">
+                    <i class="bi @(isEdit ? "bi-check-lg" : "bi-plus-lg")"></i>
+                    @(isEdit ? "Save changes" : "Save address")
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,114 @@
+﻿@model List<AmzonClone.Web.Models.Address.AddressViewModel>
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Saved addresses";
+}
+
+<section class="address-page container">
+    <header class="address-page-heading">
+        <div>
+            <span class="shop-eyebrow">YOUR ACCOUNT</span>
+            <h1>Saved addresses</h1>
+            <p>Manage the addresses you use for delivery.</p>
+        </div>
+
+        <a asp-action="Create" class="address-add-button">
+            <i class="bi bi-plus-lg"></i>
+            Add address
+        </a>
+    </header>
+
+    @if (TempData["AddressSuccess"] is string success)
+    {
+        <div class="alert alert-success" role="status">@success</div>
+    }
+
+    @if (TempData["AddressError"] is string error)
+    {
+        <div class="alert alert-danger" role="alert">@error</div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(ViewBag.AddressError))
+    {
+        <div class="alert alert-danger" role="alert">@ViewBag.AddressError</div>
+    }
+
+    @if (Model.Any())
+    {
+        <div class="address-grid">
+            @foreach (var address in Model)
+            {
+                <article class="address-card">
+                    <div class="address-card-heading">
+                        <div>
+                            <h2>@address.FullName</h2>
+                            @if (address.IsDefault)
+                            {
+                                <span class="address-default-badge">Default</span>
+                            }
+                        </div>
+
+                        <a asp-action="Edit"
+                           asp-route-id="@address.Id"
+                           class="address-icon-button"
+                           aria-label="Edit address for @address.FullName"
+                           title="Edit address">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    </div>
+
+                    <p>
+                        @address.AddressLine1
+                        @if (!string.IsNullOrWhiteSpace(address.AddressLine2))
+                        {
+                            <br />
+                            @address.AddressLine2
+                        }
+                        <br />
+                        @address.City, @address.State @address.PostalCode
+                        <br />
+                        @address.Country
+                    </p>
+
+                    <div class="address-phone">
+                        <i class="bi bi-telephone"></i>
+                        @address.PhoneNumber
+                    </div>
+
+                    <div class="address-card-actions">
+                        @if (!address.IsDefault)
+                        {
+                            <form asp-action="SetDefault" method="post">
+                                <input type="hidden" name="id" value="@address.Id" />
+                                <button type="submit" class="address-text-button">
+                                    Set as default
+                                </button>
+                            </form>
+                        }
+
+                        <form asp-action="Delete"
+                              method="post"
+                              onsubmit="return confirm('Delete this saved address?');">
+                            <input type="hidden" name="id" value="@address.Id" />
+                            <button type="submit" class="address-delete-button">
+                                Remove
+                            </button>
+                        </form>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="address-empty">
+            <i class="bi bi-geo-alt"></i>
+            <h2>No saved addresses yet</h2>
+            <p>Add an address so it is ready when you check out.</p>
+            <a asp-action="Create" class="address-add-button">
+                Add your first address
+            </a>
+        </div>
+    }
+</section>

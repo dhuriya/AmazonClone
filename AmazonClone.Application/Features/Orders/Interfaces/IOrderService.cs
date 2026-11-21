@@ -17,5 +17,6 @@ namespace AmazonClone.Application.Features.Orders.Interfaces
         Task<List<OrderTrackingDto>> GetTrackingAsync(string userId, int orderId);
         Task<bool> UpdateOrderStatusAsync(string userId,int orderId,OrderStatus status,string? remarks,string? location);
         Task<bool> RequestReturnAsync(string userId, int orderId, string reason);
+        Task<List<OrderDto>> GetAllOrdersForAdminAsync();
     }
 }

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Security.Claims;
+using AmazonClone.Shared.Constants;
 
 namespace AmazonClone.API.Controllers
 {
@@ -207,6 +208,24 @@ namespace AmazonClone.API.Controllers
             {
                 Success = true,
                 Message = "Return request submitted successfully."
+            });
+        }
+        [HttpGet("admin")]
+        [Authorize(Roles = Roles.Admin)]
+        [SwaggerOperation(
+            Summary = "Get all orders for admin",
+            Description = "Returns all orders in the system for admin users."
+        )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Orders retrieved successfully.")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized.")]
+        public async Task<IActionResult> GetAllOrdersForAdmin()
+        {
+            var result = await _orderService.GetAllOrdersForAdminAsync();
+            return Ok(new ApiResponse<List<OrderDto>>
+            {
+                Success = true,
+                Message = "Orders fetched successfully.",
+                Data = result
             });
         }
     }

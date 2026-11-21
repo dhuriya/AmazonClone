@@ -52,7 +52,7 @@ namespace AmazonClone.API.Controllers
             return Ok(new ApiResponse<List<AddressDto>>
             {
                 Success = true,
-                Message = result.Any()? "Address feched successfully."
+                Message = result.Any()? "Addresses feched successfully."
                 : "No address found.",
                 Data = result
             });
@@ -71,7 +71,7 @@ namespace AmazonClone.API.Controllers
             var result = await _addressService.DeleteAsync(userId, id);
             if (!result)
             {
-                return BadRequest(new ApiResponse<AddressDto>
+                return NotFound(new ApiResponse<object>
                 {
                     Success = false,
                     Message = "Address not found."
