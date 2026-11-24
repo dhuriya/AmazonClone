@@ -50,6 +50,7 @@
                     <th>Date</th>
                     <th>Items</th>
                     <th>Total</th>
+                    <th>Delivery address</th>
                     <th>Payment</th>
                     <th>Status</th>
                 </tr>
@@ -67,6 +68,7 @@
                         <td>@order.CreatedOn.ToString("dd MMM yyyy")</td>
                         <td>@(order.Items?.Sum(i => i.Quantity) ?? 0)</td>
                         <td>₹@order.TotalAmount.ToString("N2")</td>
+                        <td class="order-address-cell">@order.ShippingAddress</td>
                         <td>
                             <span>@order.PaymentMethod</span>
                             <small>@order.PaymentStatus</small>
@@ -80,7 +82,7 @@
                 }
 
                 <tr id="ordersNoResults" hidden>
-                    <td colspan="6" class="text-center py-4">
+                    <td colspan="7" class="text-center py-4">
                         No orders match your filters.
                     </td>
                 </tr>

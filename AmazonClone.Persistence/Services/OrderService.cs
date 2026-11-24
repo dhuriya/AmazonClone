@@ -23,15 +23,20 @@ namespace AmazonClone.Persistence.Services
 
         public async Task<OrderDto> CheckoutAsync(string userId, CreateOrderDto dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.ShippingAddress))
+            if (dto.AddressId <= 0)
             {
-                throw new BadRequestException("Shipping address is required.");
+                throw new BadRequestException("Select a valid delivery address.");
             }
-            if (string.IsNullOrWhiteSpace(dto.PaymentMethod))
+            if(!string.Equals(dto.PaymentMethod?.Trim(),"COD", StringComparison.OrdinalIgnoreCase))
             {
-                throw new BadRequestException("Payment method is required.");
+                throw new BadRequestException("Only Cash on Delivery (COD) is supported for now.");
             }
-
+            var address = await _context.Addresses.AsNoTracking().FirstOrDefaultAsync(a =>
+                a.Id == dto.AddressId && a.UserId == userId && !a.IsDeleted);
+            if (address is null)
+            {
+                throw new BadRequestException("Selected address is invalid.");
+            }
             var cart = await _context.Carts.Include(c => c.CartItem)
                 .ThenInclude(ci => ci.Product).FirstOrDefaultAsync(c =>
                     c.UserId == userId && !c.IsDeleted);
@@ -41,6 +46,16 @@ namespace AmazonClone.Persistence.Services
             {
                 throw new BadRequestException("Cart is empty.");
             }
+            var addressParts = new[]
+            {
+                address.FullName,
+                address.PhoneNumber,
+                address.AddressLine1,
+                address.AddressLine2,
+                $"{address.City}, {address.State} {address.PostalCode}",
+                address.Country
+            };
+            var shippingAddress = string.Join(", ",addressParts.Where(part => !string.IsNullOrWhiteSpace(part)));
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -51,8 +66,8 @@ namespace AmazonClone.Persistence.Services
                 {
                     UserId = userId,
                     OrderNumber = GenerateOrderNumber(),
-                    ShippingAddress = dto.ShippingAddress.Trim(),
-                    PaymentMethod = dto.PaymentMethod.Trim(),
+                    ShippingAddress = shippingAddress,
+                    PaymentMethod = "COD",
                     PaymentStatus = "Pending",
                     Status = OrderStatus.Pending
                 };

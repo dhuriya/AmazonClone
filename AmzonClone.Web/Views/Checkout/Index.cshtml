@@ -1,0 +1,160 @@
+﻿@model AmzonClone.Web.Models.Checkout.CheckoutViewModel
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Checkout";
+}
+
+<section class="checkout-page container">
+    <header class="checkout-heading">
+        <span class="shop-eyebrow">SECURE CHECKOUT</span>
+        <h1>Complete your order</h1>
+        <p>Choose a delivery address and review your order.</p>
+    </header>
+
+    @if (TempData["CheckoutError"] is string checkoutError)
+    {
+        <div class="alert alert-danger" role="alert">@checkoutError</div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(ViewBag.CheckoutError))
+    {
+        <div class="alert alert-danger" role="alert">@ViewBag.CheckoutError</div>
+    }
+
+    @if (!Model.Addresses.Any())
+    {
+        <div class="checkout-no-address">
+            <i class="bi bi-geo-alt"></i>
+            <div>
+                <h2>Add a delivery address</h2>
+                <p>You need a saved address before placing this order.</p>
+            </div>
+            <a asp-controller="Address"
+               asp-action="Create"
+               class="checkout-primary-button">
+                Add address
+            </a>
+        </div>
+    }
+    else
+    {
+        <form asp-controller="Checkout"
+              asp-action="PlaceOrder"
+              method="post">
+            <div asp-validation-summary="ModelOnly"
+                 class="alert alert-danger"></div>
+
+            <div class="checkout-layout">
+                <section class="checkout-section">
+                    <div class="checkout-section-heading">
+                        <span class="checkout-step">1</span>
+                        <div>
+                            <h2>Delivery address</h2>
+                            <p>Select where to deliver your order.</p>
+                        </div>
+                        <a asp-controller="Address" asp-action="Create">
+                            Add address
+                        </a>
+                    </div>
+
+                    <div class="checkout-address-list">
+                        @foreach (var address in Model.Addresses)
+                        {
+                            <label class="checkout-address-option">
+                                <input type="radio"
+                                       name="SelectedAddressId"
+                                       value="@address.Id"
+                                       checked="@(Model.SelectedAddressId == address.Id)" />
+
+                                <span class="checkout-radio-mark"></span>
+
+                                <span class="checkout-address-copy">
+                                    <strong>@address.FullName</strong>
+                                    @if (address.IsDefault)
+                                    {
+                                        <small class="address-default-badge">Default</small>
+                                    }
+                                    <span>@address.PhoneNumber</span>
+                                    <span>
+                                        @address.AddressLine1
+                                        @if (!string.IsNullOrWhiteSpace(address.AddressLine2))
+                                        {
+                                            <text>, @address.AddressLine2</text>
+                                        }
+                                    </span>
+                                    <span>
+                                        @address.City, @address.State @address.PostalCode,
+                                        @address.Country
+                                    </span>
+                                </span>
+                            </label>
+                        }
+                    </div>
+
+                    <span asp-validation-for="SelectedAddressId"
+                          class="text-danger"></span>
+
+                    <div class="checkout-section-heading payment-heading">
+                        <span class="checkout-step">2</span>
+                        <div>
+                            <h2>Payment method</h2>
+                            <p>Available for this checkout</p>
+                        </div>
+                    </div>
+
+                    <label class="checkout-payment-option">
+                        <input type="radio"
+                               name="PaymentMethod"
+                               value="COD"
+                               checked />
+                        <i class="bi bi-cash-coin"></i>
+                        <span>
+                            <strong>Cash on delivery</strong>
+                            <small>Pay when your order arrives.</small>
+                        </span>
+                    </label>
+                </section>
+
+                <aside class="checkout-summary">
+                    <h2>Order summary</h2>
+
+                    @foreach (var item in Model.Cart.Items)
+                    {
+                        <div class="checkout-summary-item">
+                            <span>
+                                @item.ProductName
+                                <small>Qty: @item.Quantity</small>
+                            </span>
+                            <strong>₹@item.ItemTotal.ToString("N2")</strong>
+                        </div>
+                    }
+
+                    <div class="checkout-summary-row">
+                        <span>Subtotal</span>
+                        <strong>₹@Model.Cart.GrandTotal.ToString("N2")</strong>
+                    </div>
+
+                    <div class="checkout-summary-row">
+                        <span>Shipping</span>
+                        <strong>₹0.00</strong>
+                    </div>
+
+                    <div class="checkout-summary-total">
+                        <span>Total</span>
+                        <strong>₹@Model.Cart.GrandTotal.ToString("N2")</strong>
+                    </div>
+
+                    <button type="submit" class="checkout-primary-button">
+                        Place order
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+
+                    <small>
+                        Stock is checked again when the order is submitted.
+                    </small>
+                </aside>
+            </div>
+        </form>
+    }
+</section>

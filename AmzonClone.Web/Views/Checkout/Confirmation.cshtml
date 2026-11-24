@@ -1,0 +1,57 @@
+﻿@model AmzonClone.Web.Models.Checkout.OrderConfirmationViewModel
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Order confirmed";
+}
+
+<section class="order-confirmation-page container">
+    <div class="order-confirmation-card">
+        <div class="order-confirmation-icon">
+            <i class="bi bi-check-lg"></i>
+        </div>
+
+        <span class="shop-eyebrow">ORDER PLACED</span>
+        <h1>Thank you for your order!</h1>
+        <p>
+            Your order <strong>@Model.OrderNumber</strong> has been placed.
+        </p>
+
+        <div class="confirmation-status">
+            <span>Order status</span>
+            <strong>@Model.Status</strong>
+            <span>Payment</span>
+            <strong>Cash on delivery</strong>
+        </div>
+
+        <div class="confirmation-address">
+            <h2>Delivering to</h2>
+            <p>@Model.ShippingAddress</p>
+        </div>
+
+        <div class="confirmation-items">
+            <h2>Items</h2>
+            @foreach (var item in Model.Items)
+            {
+                <div class="confirmation-item">
+                    <span>
+                        @item.ProductName
+                        <small>Qty: @item.Quantity</small>
+                    </span>
+                    <strong>₹@item.TotalAmount.ToString("N2")</strong>
+                </div>
+            }
+        </div>
+
+        <div class="confirmation-total">
+            <span>Order total</span>
+            <strong>₹@Model.TotalAmount.ToString("N2")</strong>
+        </div>
+
+        <a asp-controller="Home"
+           asp-action="Index"
+           class="checkout-primary-button">
+            Continue shopping
+        </a>
+    </div>
+</section>

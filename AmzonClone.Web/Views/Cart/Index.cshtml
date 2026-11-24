@@ -141,9 +141,11 @@
                     <strong>₹@Model.GrandTotal.ToString("N2")</strong>
                 </div>
 
-                <button type="button" class="cart-checkout-button" disabled>
+                <a asp-controller="Checkout"
+                   asp-action="Index"
+                   class="cart-checkout-button">
                     Continue to checkout
-                </button>
+                </a>
 
                 <small>Checkout will be connected in the next feature.</small>
             </aside>

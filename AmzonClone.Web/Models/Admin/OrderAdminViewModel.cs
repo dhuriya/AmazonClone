@@ -10,5 +10,6 @@
         public string PaymentStatus { get; set; } = string.Empty;
         public DateTime CreatedOn { get; set; }
         public List<OrderItemAdminViewModel> Items { get; set; } = new();
+        public string ShippingAddress { get; set; } = string.Empty;
     }
 }
