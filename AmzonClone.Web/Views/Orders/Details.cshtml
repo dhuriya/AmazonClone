@@ -1,0 +1,100 @@
+﻿@model AmzonClone.Web.Models.Orders.CustomerOrderViewModels
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Order details";
+}
+
+<section class="customer-orders-page container">
+    <a asp-action="Index" class="order-back-link">
+        <i class="bi bi-arrow-left"></i> Back to my orders
+    </a>
+
+    @if (TempData["OrderSuccess"] is string success)
+    {
+        <div class="alert alert-success" role="status">@success</div>
+    }
+
+    @if (TempData["OrderError"] is string error)
+    {
+        <div class="alert alert-danger" role="alert">@error</div>
+    }
+
+    <article class="customer-order-details">
+        <header class="customer-order-details-heading">
+            <div>
+                <span class="shop-eyebrow">ORDER DETAILS</span>
+                <h1>@Model.OrderNumber</h1>
+                <p>Placed on @Model.CreatedOn.ToString("dd MMM yyyy, hh:mm tt")</p>
+            </div>
+            <span class="customer-order-status">@Model.Status</span>
+        </header>
+
+        <div class="order-detail-grid">
+            <section class="order-detail-panel">
+                <h2>Items</h2>
+                @foreach (var item in Model.Items)
+                {
+                    <div class="order-detail-item">
+                        <span>
+                            <strong>@item.ProductName</strong>
+                            <small>Qty: @item.Quantity · ₹@item.UnitPrice.ToString("N2") each</small>
+                        </span>
+                        <strong>₹@item.TotalAmount.ToString("N2")</strong>
+                    </div>
+                }
+            </section>
+
+            <section class="order-detail-panel">
+                <h2>Delivery address</h2>
+                <p>@Model.ShippingAddress</p>
+                <h2>Payment</h2>
+                <p>@Model.PaymentMethod · @Model.PaymentStatus</p>
+            </section>
+        </div>
+
+        <div class="order-detail-total">
+            <span>Order total</span>
+            <strong>₹@Model.TotalAmount.ToString("N2")</strong>
+        </div>
+
+        <div class="customer-order-actions">
+            <a asp-action="Tracking"
+               asp-route-id="@Model.Id"
+               class="customer-order-primary">
+                Track order
+            </a>
+
+            @if (Model.Status == "Pending")
+            {
+                <form asp-action="Cancel"
+                      asp-route-id="@Model.Id"
+                      method="post"
+                      onsubmit="return confirm('Cancel this order?');">
+                    <button type="submit" class="customer-order-danger">
+                        Cancel order
+                    </button>
+                </form>
+            }
+
+            @if (Model.Status == "Delivered")
+            {
+                <form asp-action="RequestReturn"
+                      asp-route-id="@Model.Id"
+                      method="post"
+                      class="order-return-form">
+                    <label for="returnReason">Return reason</label>
+                    <input id="returnReason"
+                           name="Reason"
+                           minlength="5"
+                           maxlength="500"
+                           required
+                           placeholder="Tell us why you are returning this order" />
+                    <button type="submit" class="customer-order-secondary">
+                        Request return
+                    </button>
+                </form>
+            }
+        </div>
+    </article>
+</section>

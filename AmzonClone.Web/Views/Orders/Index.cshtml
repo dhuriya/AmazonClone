@@ -1,0 +1,83 @@
+﻿@model List<AmzonClone.Web.Models.Orders.CustomerOrderViewModels>
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "My orders";
+}
+<section class="customer-orders-page container">
+    <header class="customer-orders-heading">
+        <div>
+            <span class="shop-eyebrow">YOUR ACCOUNT</span>
+            <h1>My orders</h1>
+            <p>View your purchases and follow their progress.</p>
+        </div>
+    </header>
+
+    @if (TempData["OrderSuccess"] is string success)
+    {
+        <div class="alert alert-success" role="status">@success</div>
+    }
+
+    @if (TempData["OrderError"] is string error)
+    {
+        <div class="alert alert-danger" role="alert">@error</div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(ViewBag.OrderError))
+    {
+        <div class="alert alert-danger" role="alert">@ViewBag.OrderError</div>
+    }
+
+    @if (Model.Any())
+    {
+        <div class="customer-order-list">
+            @foreach (var order in Model)
+            {
+                <article class="customer-order-card">
+                    <div class="customer-order-top">
+                        <div>
+                            <span class="customer-order-label">ORDER</span>
+                            <strong>@order.OrderNumber</strong>
+                            <small>@order.CreatedOn.ToString("dd MMM yyyy")</small>
+                        </div>
+
+                        <span class="customer-order-status">
+                            @order.Status
+                        </span>
+                    </div>
+
+                    <div class="customer-order-summary">
+                        <span>@(order.Items?.Sum(item => item.Quantity) ?? 0) item(s)</span>
+                        <strong>₹@order.TotalAmount.ToString("N2")</strong>
+                        <span>@order.PaymentMethod · @order.PaymentStatus</span>
+                    </div>
+
+                    <div class="customer-order-actions">
+                        <a asp-action="Details"
+                           asp-route-id="@order.Id"
+                           class="customer-order-primary">
+                            View order
+                        </a>
+
+                        <a asp-action="Tracking"
+                           asp-route-id="@order.Id"
+                           class="customer-order-secondary">
+                            Track order
+                        </a>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+    else if (string.IsNullOrWhiteSpace(ViewBag.OrderError))
+    {
+        <div class="customer-orders-empty">
+            <i class="bi bi-receipt"></i>
+            <h2>No orders yet</h2>
+            <p>Your placed orders will appear here.</p>
+            <a asp-controller="Home" asp-action="Index" class="checkout-primary-button">
+                Explore products
+            </a>
+        </div>
+    }
+</section>

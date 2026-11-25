@@ -1,0 +1,55 @@
+﻿@model List<AmzonClone.Web.Models.Orders.OrderTrackingViewModel>
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Track order";
+    var orderId = (int)ViewBag.OrderId;
+}
+
+<section class="customer-orders-page container">
+    <a asp-action="Details"
+       asp-route-id="@orderId"
+       class="order-back-link">
+        <i class="bi bi-arrow-left"></i> Back to order
+    </a>
+
+    <header class="customer-orders-heading">
+        <span class="shop-eyebrow">DELIVERY UPDATES</span>
+        <h1>Order tracking</h1>
+        <p>Order ID: @orderId</p>
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(ViewBag.TrackingError))
+    {
+        <div class="alert alert-info">@ViewBag.TrackingError</div>
+    }
+
+    @if (Model.Any())
+    {
+        <ol class="order-tracking-timeline">
+            @foreach (var eventItem in Model.OrderByDescending(
+           item => item.Status == "Pending" ? 0 : 1))
+            {
+                <li class="order-tracking-event">
+                    <span class="order-tracking-dot">
+                        <i class="bi bi-check-lg"></i>
+                    </span>
+                    <div>
+                        <strong>@eventItem.Status</strong>
+                        <p>@eventItem.Remarks</p>
+                        @if (!string.IsNullOrWhiteSpace(eventItem.Location))
+                        {
+                            <small><i class="bi bi-geo-alt"></i> @eventItem.Location</small>
+                        }
+                    </div>
+                </li>
+            }
+        </ol>
+    }
+    else if (string.IsNullOrWhiteSpace(ViewBag.TrackingError))
+    {
+        <div class="alert alert-info">
+            Tracking updates are not available yet.
+        </div>
+    }
+</section>

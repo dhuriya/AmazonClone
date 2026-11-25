@@ -251,22 +251,49 @@ namespace AmazonClone.Persistence.Services
         }
         public async Task<bool> UpdateOrderStatusAsync(string userId, int orderId, OrderStatus status, string? remarks, string? location)
         {
-            var order = await _context.Orders.Include(o => o.OrderItems)
+            if (!Enum.IsDefined(typeof(OrderStatus), status))
+                return false;
+
+            var order = await _context.Orders.Include(o => o.OrderItems).Include(o => o.TrackingHistory)
                 .FirstOrDefaultAsync(o => o.Id == orderId && !o.IsDeleted);
-            var currentStatus = order.Status;
-            if (!IsValidStatusTransition(currentStatus,status))
+
+            if (order is null || !IsValidStatusTransition(order.Status, status))
             {
                 return false;
             }
+
+            // Agar admin order cancel kare, to item stock wapas add karo.
+            if (status == OrderStatus.Cancelled)
+            {
+                foreach (var item in order.OrderItems)
+                {
+                    var product = await _context.Products
+                        .FirstOrDefaultAsync(p =>
+                            p.Id == item.ProductId &&
+                            !p.IsDeleted);
+
+                    if (product is not null)
+                        product.Stock += item.Quantity;
+                }
+            }
+
             order.Status = status;
             order.ModifiedOn = DateTime.UtcNow;
+
             order.TrackingHistory.Add(new OrderTracking
             {
+                OrderId = order.Id,
                 Status = status,
-                Remarks = remarks ?? $"Order status updated to {status}.",
-                Location = location,
-                UpdatedBy = userId
+                Remarks = string.IsNullOrWhiteSpace(remarks)
+                    ? $"Order status updated to {status}."
+                    : remarks.Trim(),
+                Location = string.IsNullOrWhiteSpace(location)
+                    ? null
+                    : location.Trim(),
+                UpdatedBy = userId,
+                CreatedOn = DateTime.UtcNow
             });
+
             await _context.SaveChangesAsync();
             return true;
         }

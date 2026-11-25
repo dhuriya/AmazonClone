@@ -140,6 +140,7 @@ namespace AmazonClone.API.Controllers
             });
         }
         [HttpPut("{orderId}/status")]
+        [Authorize(Roles = Roles.Admin)]
         [SwaggerOperation(
             Summary = "Update order status",
             Description = "Updates the status of a specific order belonging to the authenticated user."

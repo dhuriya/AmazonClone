@@ -1,15 +1,18 @@
 ﻿@model List<AmzonClone.Web.Models.Admin.OrderAdminViewModel>
+@using System
 
 @{
     Layout = "_AdminLayout";
     ViewData["Title"] = "Orders";
 }
+
 <section class="dashboard-header">
     <div>
         <span class="dashboard-eyebrow">STORE MANAGEMENT</span>
         <h1>Orders</h1>
         <p>Review orders and payment status across your store.</p>
     </div>
+
     <span class="category-count" id="orderCount">@Model.Count orders</span>
 </section>
 
@@ -21,15 +24,28 @@
         </div>
     </div>
 
+    @if (TempData["OrderSuccess"] is string success)
+    {
+        <div class="alert alert-success" role="status">@success</div>
+    }
+
+    @if (TempData["OrderError"] is string error)
+    {
+        <div class="alert alert-danger" role="alert">@error</div>
+    }
+
     @if (!string.IsNullOrWhiteSpace(ViewBag.OrderApiError))
     {
-        <div class="alert alert-danger mt-3">@ViewBag.OrderApiError</div>
+        <div class="alert alert-danger mt-3" role="alert">
+            @ViewBag.OrderApiError
+        </div>
     }
 
     <div class="category-filters order-filters">
         <label class="category-search">
             <i class="bi bi-search"></i>
-            <input id="orderSearch" type="search"
+            <input id="orderSearch"
+                   type="search"
                    placeholder="Search order number or payment method..." />
         </label>
 
@@ -53,44 +69,150 @@
                     <th>Delivery address</th>
                     <th>Payment</th>
                     <th>Status</th>
+                    <th>Update status</th>
                 </tr>
             </thead>
+
             <tbody id="ordersTableBody">
                 @foreach (var order in Model)
                 {
+                    var nextStatuses = order.Status switch
+                    {
+                        "Pending" => new[]
+                        {
+                ("Confirmed", 2),
+                ("Cancelled", 8)
+                },
+                        "Confirmed" => new[]
+                        {
+                ("Packed", 3),
+                ("Cancelled", 8)
+                },
+                        "Packed" => new[]
+                        {
+                ("Shipped", 4)
+                },
+                        "Shipped" => new[]
+                        {
+                ("In transit", 5)
+                },
+                        "InTransit" => new[]
+                        {
+                ("Out for delivery", 6)
+                },
+                        "OutForDelivery" => new[]
+                        {
+                ("Delivered", 7)
+                },
+                        "Cancelled" => new[]
+                        {
+                ("Refund requested", 11)
+                },
+                        "ReturnRequested" => new[]
+                        {
+                ("Returned", 10)
+                },
+                        "Returned" => new[]
+                        {
+                ("Refund requested", 11)
+                },
+                        "RefundRequested" => new[]
+                        {
+                ("Refunded", 12)
+                },
+                        "ExchangeRequested" => new[]
+                        {
+                ("Exchanged", 14)
+                },
+                        _ => Array.Empty<(string, int)>()
+                    };
+
                     <tr data-order-number="@order.OrderNumber.ToLowerInvariant()"
                         data-payment-method="@order.PaymentMethod.ToLowerInvariant()"
                         data-order-status="@order.Status.ToLowerInvariant()">
+
                         <td>
                             <strong>@order.OrderNumber</strong>
                             <small>ID: @order.Id</small>
                         </td>
+
                         <td>@order.CreatedOn.ToString("dd MMM yyyy")</td>
+
                         <td>@(order.Items?.Sum(i => i.Quantity) ?? 0)</td>
+
                         <td>₹@order.TotalAmount.ToString("N2")</td>
-                        <td class="order-address-cell">@order.ShippingAddress</td>
+
+                        <td class="order-address-cell">
+                            @order.ShippingAddress
+                        </td>
+
                         <td>
                             <span>@order.PaymentMethod</span>
                             <small>@order.PaymentStatus</small>
                         </td>
+
                         <td>
-                            <span class="order-status-pill">
-                                @order.Status
-                            </span>
+                            <span class="order-status-pill">@order.Status</span>
+                        </td>
+
+                        <td>
+                            @if (nextStatuses.Length > 0)
+                            {
+                                <form asp-controller="Admin"
+                                      asp-action="UpdateOrderStatus"
+                                      method="post"
+                                      class="order-status-form">
+
+                                    <input type="hidden"
+                                           name="OrderId"
+                                           value="@order.Id" />
+
+                                    <select name="Status"
+                                            aria-label="New status for @order.OrderNumber">
+                                        @foreach (var nextStatus in nextStatuses)
+                                        {
+                                            <option value="@nextStatus.Item2">
+                                                @nextStatus.Item1
+                                            </option>
+                                        }
+                                    </select>
+
+                                    <input type="text"
+                                           name="Remarks"
+                                           maxlength="500"
+                                           placeholder="Note (optional)" />
+
+                                    <input type="text"
+                                           name="Location"
+                                           maxlength="150"
+                                           placeholder="Location (optional)" />
+
+                                    <button type="submit" class="order-status-save">
+                                        Update
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span>—</span>
+                            }
                         </td>
                     </tr>
                 }
 
                 <tr id="ordersNoResults" hidden>
-                    <td colspan="7" class="text-center py-4">
+                    <td colspan="8" class="text-center py-4">
                         No orders match your filters.
                     </td>
                 </tr>
 
-                @if (Model.Count == 0 && string.IsNullOrWhiteSpace(ViewBag.OrderApiError))
+                @if (Model.Count == 0 &&
+                string.IsNullOrWhiteSpace(ViewBag.OrderApiError))
                 {
                     <tr>
-                        <td colspan="6" class="text-center py-4">No orders found.</td>
+                        <td colspan="8" class="text-center py-4">
+                            No orders found.
+                        </td>
                     </tr>
                 }
             </tbody>
@@ -109,6 +231,7 @@
         function filterOrders() {
             const query = orderSearch.value.trim().toLowerCase();
             const selectedStatus = orderStatusFilter.value;
+
             const rows = Array.from(
                 ordersTableBody.querySelectorAll("tr[data-order-number]")
             );
@@ -118,7 +241,9 @@
             rows.forEach(row => {
                 const matchesText =
                     row.dataset.orderNumber.includes(query) ||
-                    row.dataset.paymentMethod.includes(query);
+                    row.dataset.paymentMethod.includes(query) ||
+                    row.querySelector(".order-address-cell")
+                        .textContent.toLowerCase().includes(query);
 
                 const matchesStatus =
                     selectedStatus === "all" ||
@@ -126,10 +251,12 @@
 
                 row.hidden = !(matchesText && matchesStatus);
 
-                if (!row.hidden) visibleCount++;
+                if (!row.hidden)
+                    visibleCount++;
             });
 
             ordersNoResults.hidden = visibleCount > 0;
+
             orderCount.textContent =
                 `${visibleCount} ${visibleCount === 1 ? "order" : "orders"}`;
         }

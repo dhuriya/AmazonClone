@@ -379,5 +379,36 @@ namespace AmzonClone.Web.Controllers
                 return View(new List<OrderAdminViewModel>());
             }
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateOrderStatus(UpdateOrderStatusRequest model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["OrderError"] = "Enter valid order status details.";
+                return RedirectToAction(nameof(Orders));
+            }
+
+            try
+            {
+                var response = await _apiClient.PutAsync<
+                    UpdateOrderStatusRequest,
+                    ApiResponse<object>>(
+                    $"Order/{model.OrderId}/status",
+                    model);
+
+                TempData[response?.Success == true
+                    ? "OrderSuccess"
+                    : "OrderError"] =
+                    response?.Message ?? "Could not update the order status.";
+            }
+            catch (HttpRequestException)
+            {
+                TempData["OrderError"] =
+                    "Could not update the order status. Check your admin access and try again.";
+            }
+
+            return RedirectToAction(nameof(Orders));
+        }
     }
 }
