@@ -36,7 +36,7 @@ namespace AmazonClone.API.Controllers
                 return BadRequest(new ApiResponse<object>
                 {
                     Success = false,
-                    Message = "Unable to add item to wishlist."
+                    Message = "This product is unavailable or out of stock."
                 });
             }
             return Ok(new ApiResponse<object>

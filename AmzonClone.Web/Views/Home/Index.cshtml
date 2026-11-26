@@ -144,15 +144,30 @@
 
                         @if (Context.Session.GetString("CustomerAccessToken") is not null)
                         {
-                            <span class="shop-wishlist nav-icon-disabled" aria-disabled="true" title="Wishlist is coming soon">
-                                <i class="bi bi-heart" aria-hidden="true"></i>
-                            </span>
+                            <form asp-controller="Wishlist"
+                                  asp-action="Add"
+                                  method="post"
+                                  class="wishlist-add-form">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="ProductId" value="@product.Id" />
+
+                                <button type="submit"
+                                        class="shop-wishlist"
+                                        aria-label="Add @product.Name to your wishlist"
+                                        title="Add to wishlist">
+                                    <i class="bi bi-heart" aria-hidden="true"></i>
+                                </button>
+                            </form>
                         }
                         else
                         {
-                            <a asp-controller="Account" asp-action="Login"
-                               class="shop-wishlist" aria-label="Sign in to save favorites">
-                                <i class="bi bi-heart"></i>
+                            <a asp-controller="Account"
+                               asp-action="Login"
+                               asp-route-returnUrl="@Url.Action("Details", "Product", new { id = product.Id })"
+                               class="shop-wishlist"
+                               aria-label="Sign in to save @product.Name"
+                               title="Sign in to save this product">
+                                <i class="bi bi-heart" aria-hidden="true"></i>
                             </a>
                         }
 

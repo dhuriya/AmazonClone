@@ -1,0 +1,100 @@
+﻿@model AmzonClone.Web.Models.Wishlist.WishlistViewModel
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Your wishlist";
+}
+<section class="wishlist-page container">
+    <header class="wishlist-heading">
+        <div>
+            <span class="shop-eyebrow">SAVED FOR LATER</span>
+            <h1>Your wishlist</h1>
+            <p>Keep your favorite finds together.</p>
+        </div>
+
+        <span class="wishlist-count">
+            @Model.Items.Count @(Model.Items.Count == 1 ? "item" : "items")
+        </span>
+    </header>
+
+    @if (TempData["WishlistSuccess"] is string success)
+    {
+        <div class="alert alert-success" role="status">@success</div>
+    }
+    @if (TempData["WishlistError"] is string error)
+    {
+        <div class="alert alert-danger" role="alert">@error</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(ViewBag.WishlistError))
+    {
+        <div class="alert alert-danger" role="alert">@ViewBag.WishlistError</div>
+    }
+    @if (Model.Items.Any())
+    {
+        <div class="wishlist-grid">
+            @foreach (var item in Model.Items)
+            {
+                var imageFileName = item.ImageUrl?.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
+                var imageUrl = string.IsNullOrWhiteSpace(imageFileName)
+                ? null : Url.Action("ProductImage", "Home", new { fileName = imageFileName });
+                <article class="wishlist-card">
+                    <a asp-controller="Product" asp-action="Details" asp-route-id="@item.ProductId" class="wishlist-image">
+                        @if (imageUrl is not null)
+                        {
+                            <img src="@imageUrl" alt="@item.ProductName" loading="lazy"
+                                 onerror="this.hidden=true; this.nextElementSibling.hidden=false;" />
+                            <span hidden><i class="bi bi-image"></i></span>
+                        }
+                        else
+                        {
+                            <span><i class="bi bi-image"></i></span>
+                        }
+                    </a>
+
+                    <div class="wishlist-info">
+                        <a asp-controller="Product" asp-action="Details" asp-route-id="@item.ProductId" class="wishlist-product-name">
+                            @item.ProductName
+                        </a>
+                        <strong>₹@item.Price.ToString("N2")</strong>
+                        @if (item.IsAvailable)
+                        {
+                            <span class="wishlist-availability">
+                                <i class="bi bi-check-circle-fill"></i>
+                                In stock (@item.Stock)
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="wishlist-unavailable">
+                                Currently unavailable
+                            </span>
+                        }
+                        <div class="wishlist-actions">
+                            <a asp-controller="Product" asp-action="Details" asp-route-id="@item.ProductId" class="shop-button-primary">
+                                View product <i class="bi bi-arrow-right"></i>
+                            </a>
+                            <form asp-controller="Wishlist" asp-action="Remove" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="productId" value="@item.ProductId" />
+                                <button type="submit" class="wishlist-remove-button">
+                                    <i class="bi bi-trash" aria-hidden="true"></i>
+                                    Remove
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="wishlist-empty">
+            <span><i class="bi bi-heart"></i></span>
+            <h2>Your wishlist is empty</h2>
+            <p>Save products you like and find them here later.</p>
+            <a asp-controller="Home" asp-action="Index" class="shop-button-primary"> Explore products <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    }
+</section>

@@ -33,9 +33,9 @@
 
         @if (Context.Session.GetString("CustomerAccessToken") is not null)
         {
-            <span class="nav-icon nav-icon-disabled" aria-disabled="true" title="Wishlist page is coming soon">
-                <i class="bi bi-heart" aria-hidden="true"></i><span>Wishlist</span>
-            </span>
+            <a asp-controller="Wishlist" asp-action="Index" class="nav-icon" title="View wishlist">
+                <i class="bi bi-heart" aria-hidden="true"></i> <span>Wishlist</span>
+            </a>
             <a asp-controller="Cart" asp-action="Index" class="nav-icon" title="View cart">
                 <i class="bi bi-cart3" aria-hidden="true"></i>
                 <span>Cart</span>
@@ -49,8 +49,11 @@
         }
         else
         {
-            <a asp-controller="Account" asp-action="Login" class="nav-icon" title="Sign in to view wishlist">
-                <i class="bi bi-heart" aria-hidden="true"></i><span>Wishlist</span>
+            <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Index", "Wishlist")"
+               class="nav-icon"
+               title="Sign in to view wishlist">
+                <i class="bi bi-heart" aria-hidden="true"></i>
+                <span>Wishlist</span>
             </a>
             <a asp-controller="Account"
                asp-action="Login"
