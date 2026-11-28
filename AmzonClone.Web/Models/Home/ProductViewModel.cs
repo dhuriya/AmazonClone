@@ -14,5 +14,7 @@
         public int ReviewCount { get; set; }
         public int Stock { get; set; }
         public bool IsActive { get; set; } = true;
+        public List<ProductReviewViewModel> Reviews { get; set; } = new();
+        public string? ReviewsError { get; set; }
     }
 }

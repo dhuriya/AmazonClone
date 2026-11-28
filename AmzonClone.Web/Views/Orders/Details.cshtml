@@ -64,7 +64,9 @@
                class="customer-order-primary">
                 Track order
             </a>
-
+            <a asp-action="Invoice" asp-route-id="@Model.Id" class="customer-order-secondary">
+                <i class="bi bi-receipt" aria-hidden="true"></i> View invoice
+            </a>
             @if (Model.Status == "Pending")
             {
                 <form asp-action="Cancel"

@@ -125,16 +125,36 @@ namespace AmzonClone.Web.Controllers
             }
             return RedirectToAction(nameof(Details), new { id });
         }
+        [HttpGet]
+        public async Task<IActionResult> Invoice(int id)
+        {
+            if (!HasCustomerSession())
+                return RedirectToLogin(Url.Action(nameof(Invoice), new { id }));
+            if (id <= 0)
+                return BadRequest();
+
+            try
+            {
+                var response = await _apiClient.GetAsync<ApiResponse<CustomerOrderViewModels>>($"Order/{id}");
+                return response?.Data is null ? NotFound() : View(response.Data);
+            }
+            catch (HttpRequestException ex)
+                when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                return NotFound();
+            }
+            catch (HttpRequestException)
+            {
+                return StatusCode( StatusCodes.Status503ServiceUnavailable, "The invoice is temporarily unavailable.");
+            }
+        }
         private bool HasCustomerSession()
         {
             return !string.IsNullOrWhiteSpace(HttpContext.Session.GetString("CustomerAccessToken"));
         }
         private IActionResult RedirectToLogin(string? returnUrl)
         {
-            return RedirectToAction(
-                "Login",
-                "Account",
-                new { returnUrl });
+            return RedirectToAction( "Login","Account",new { returnUrl });
         }
     }
 }

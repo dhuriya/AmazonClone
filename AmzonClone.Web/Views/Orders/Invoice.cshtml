@@ -1,0 +1,118 @@
+﻿@model AmzonClone.Web.Models.Orders.CustomerOrderViewModels
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = $"Invoice {Model.OrderNumber}";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/invoice.css" asp-append-version="true" />
+}
+
+<section class="invoice-page container">
+    <div class="invoice-toolbar">
+        <a asp-action="Details"
+           asp-route-id="@Model.Id"
+           class="invoice-back-link">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            Back to order
+        </a>
+
+        <button type="button"
+                class="invoice-print-button"
+                onclick="window.print()">
+            <i class="bi bi-printer" aria-hidden="true"></i>
+            Print / Save as PDF
+        </button>
+    </div>
+
+    <article class="invoice-paper">
+        <header class="invoice-header">
+            <div>
+                <a asp-controller="Home"
+                   asp-action="Index"
+                   class="invoice-brand">
+                    Shop<span>Kart</span>
+                </a>
+                <p>Thank you for shopping with us.</p>
+            </div>
+
+            <div class="invoice-title">
+                <span>ORDER INVOICE</span>
+                <h1>@Model.OrderNumber</h1>
+            </div>
+        </header>
+
+        <div class="invoice-meta">
+            <div>
+                <span>Order date</span>
+                <strong>@Model.CreatedOn.ToString("dd MMM yyyy")</strong>
+            </div>
+            <div>
+                <span>Order status</span>
+                <strong>@Model.Status</strong>
+            </div>
+            <div>
+                <span>Payment</span>
+                <strong>@Model.PaymentMethod · @Model.PaymentStatus</strong>
+            </div>
+        </div>
+
+        <section class="invoice-address">
+            <h2>Deliver to</h2>
+            <p>@Model.ShippingAddress</p>
+        </section>
+
+        <div class="invoice-table-wrap">
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th class="invoice-number">Qty</th>
+                        <th class="invoice-number">Unit price</th>
+                        <th class="invoice-number">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Items)
+                    {
+                        <tr>
+                            <td>@item.ProductName</td>
+                            <td class="invoice-number">@item.Quantity</td>
+                            <td class="invoice-number">₹@item.UnitPrice.ToString("N2")</td>
+                            <td class="invoice-number">₹@item.TotalAmount.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="invoice-totals">
+            <div>
+                <span>Subtotal</span>
+                <strong>₹@Model.SubTotal.ToString("N2")</strong>
+            </div>
+            <div>
+                <span>Tax</span>
+                <strong>₹@Model.TaxAmount.ToString("N2")</strong>
+            </div>
+            <div>
+                <span>Shipping</span>
+                <strong>₹@Model.ShippingAmount.ToString("N2")</strong>
+            </div>
+            <div>
+                <span>Discount</span>
+                <strong>−₹@Model.DiscountAmount.ToString("N2")</strong>
+            </div>
+            <div class="invoice-grand-total">
+                <span>Order total</span>
+                <strong>₹@Model.TotalAmount.ToString("N2")</strong>
+            </div>
+        </div>
+
+        <footer class="invoice-footer">
+            <strong>ShopKart</strong>
+            <span>This invoice was generated from your order details.</span>
+        </footer>
+    </article>
+</section>

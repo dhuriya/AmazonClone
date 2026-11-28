@@ -11,7 +11,9 @@
         ? null
         : Url.Action("ProductImage", "Home", new { fileName = imageFileName });
 }
-
+@section Styles {
+    <link rel="stylesheet" href="~/css/product-reviews.css" asp-append-version="true" />
+}
 <section class="product-details-page container">
     <nav class="product-breadcrumb" aria-label="Breadcrumb">
         <a asp-controller="Home" asp-action="Index">Home</a>
@@ -149,4 +151,106 @@
             </div>
         </div>
     </div>
+    <section class="product-reviews-section" aria-labelledby="reviews-heading">
+        <div class="product-reviews-header">
+            <div>
+                <span class="shop-eyebrow">CUSTOMER FEEDBACK</span>
+                <h2 id="reviews-heading">Customer reviews</h2>
+                <p>See what shoppers think about this product.</p>
+            </div>
+            <div class="product-review-summary" aria-label="Average product rating">
+                <strong>@Model.Rating.ToString("0.0")</strong>
+                <span class="review-stars" aria-hidden="true">
+                    @for (var star = 1; star <= 5; star++)
+                    {
+                        <i class="bi @(star <= Model.Rating ? "bi-star-fill" : "bi-star")"></i>
+                    }
+                </span>
+                <small>@Model.ReviewCount reviews</small>
+            </div>
+        </div>
+        @if (TempData["ReviewSuccess"] is string reviewSuccess)
+        {
+            <div class="alert alert-success" role="status">@reviewSuccess</div>
+        }
+        @if (TempData["ReviewError"] is string reviewError)
+        {
+            <div class="alert alert-danger" role="alert">@reviewError</div>
+        }
+        @if (!string.IsNullOrWhiteSpace(Model.ReviewsError))
+        {
+            <div class="alert alert-warning" role="alert">@Model.ReviewsError</div>
+        }
+        <div class="product-reviews-layout">
+            <div class="product-review-list">
+                @if (Model.Reviews.Any())
+                {
+                    foreach (var review in Model.Reviews)
+                    {
+                        <article class="product-review-card">
+                            <div class="review-card-top">
+                                <div class="review-avatar" aria-hidden="true">
+                                    @(string.IsNullOrWhiteSpace(review.UserName) ? "C" : review.UserName[..1].ToUpperInvariant())
+                                </div>
+                                <div>
+                                    <strong>
+                                        @(string.IsNullOrWhiteSpace(review.UserName) ? "Customer" : review.UserName)
+                                    </strong>
+                                    <span class="review-stars" aria-label="@review.Rating out of 5 stars">
+                                        @for (var star = 1; star <= 5; star++)
+                                        {
+                                            <i class="bi @(star <= review.Rating ? "bi-star-fill" : "bi-star")" aria-hidden="true"></i>
+                                        }
+                                    </span>
+                                </div>
+                            </div>
+                            <p class="review-comment">@review.Comment</p>
+                        </article>
+                    }
+                }
+                else if (string.IsNullOrWhiteSpace(Model.ReviewsError))
+                {
+                    <div class="reviews-empty">
+                        <i class="bi bi-chat-square-heart" aria-hidden="true"></i>
+                        <strong>No reviews yet</strong>
+                        <span>Be the first to share your experience.</span>
+                    </div>
+                }
+            </div>
+            <aside class="product-review-form-card">
+                <h3>Write a review</h3>
+                <p>Only customers with a delivered order can submit a review.</p>
+
+                @if (Context.Session.GetString("CustomerAccessToken") is not null)
+                {
+                    <form asp-controller="Product" asp-action="Review" method="post" class="product-review-form">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="ProductId" value="@Model.Id" />
+                        <label for="reviewRating">Your rating</label>
+                        <select id="reviewRating" name="Rating" required>
+                            <option value="">Choose a rating</option>
+                            <option value="5">5 — Excellent</option>
+                            <option value="4">4 — Good</option>
+                            <option value="3">3 — Okay</option>
+                            <option value="2">2 — Poor</option>
+                            <option value="1">1 — Very poor</option>
+                        </select>
+                        <label for="reviewComment">Your review</label>
+                        <textarea id="reviewComment" name="Comment" rows="5" minlength="5"
+                                  maxlength="1000" placeholder="What did you think about this product?" required></textarea>
+                        <button type="submit" class="shop-button-primary">
+                            Submit review <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <a asp-controller="Account" asp-action="Login"
+                       asp-route-returnUrl="@Url.Action("Details", "Product", new { id = Model.Id })" class="shop-button-primary">
+                        Sign in to review <i class="bi bi-arrow-right"></i>
+                    </a>
+                }
+            </aside>
+        </div>
+    </section>
 </section>
